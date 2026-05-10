@@ -1,0 +1,381 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>3574e471-9f76-41ec-b78f-2f7b66a55821</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>ae865252-34e3-4e34-97e2-a831ed1e2d60</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dds;dlg;fbx;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Scenes">
+      <UniqueIdentifier>{a9f07816-07ae-4c56-82ff-7ce2ae0a211d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library">
+      <UniqueIdentifier>{6761e457-8adf-402f-b848-77bbf692a57d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObjects">
+      <UniqueIdentifier>{07a13f8e-6a50-4002-897f-83f67ef7dc06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObjects\UIs">
+      <UniqueIdentifier>{969dabbd-28c7-44b7-8334-c2d389677117}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Stages">
+      <UniqueIdentifier>{943eb71f-ab6c-4e56-ab90-307b46956e97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObjects\Effects">
+      <UniqueIdentifier>{7d2e9d49-9329-4559-8b57-b124f8429db9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObjects\StageObjects">
+      <UniqueIdentifier>{30c11468-7a13-46e1-a680-797b5e05dfbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObjects\Gimmicks">
+      <UniqueIdentifier>{50c924b1-b71d-49d5-87ae-597e8fe1d349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Task">
+      <UniqueIdentifier>{0dc6a7e7-f8c0-4ae4-9ef5-3777c46f0b63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TimeRecords">
+      <UniqueIdentifier>{b8fa41c2-8e44-4f5b-9207-7feaf19b7814}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="StepTimer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\TitleScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\TutorialScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\DebugFont.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\SceneManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\InputManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\CollisionManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\ResultScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\LoadScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\BinaryFile.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\TaskManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\SRVManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\SoundManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\UserInterface.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\SelectScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\UIs\ShieldUI.h">
+      <Filter>GameObjects\UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\UIs\SwordUI.h">
+      <Filter>GameObjects\UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\UIs\HealthUI.h">
+      <Filter>GameObjects\UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\TitleCamera.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\TutorialManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\ScreenManager.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\UIs\StaminaUI.h">
+      <Filter>GameObjects\UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\Camera.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\DebugDraw.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\DeviceResources.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\GameCamera.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\TransitionMask.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\UserResources.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\SpriteSheet.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\ReadData.h" />
+    <ClInclude Include="GameObjects\Stages\Enemy.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\BackGround.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\Gate.h">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\GimmickBlock.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Stages\Goal.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\Item.h">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\UIs\Menu.h">
+      <Filter>GameObjects\UIs</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\SwirlParticle.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\SwitchParticle.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\ParticleUtility.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Stages\StageObject.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\Switch.h">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\Shadow.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\PortalParticle.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Stages\Player.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\StageScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\Platform.h">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\Portal.h">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Stage.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\RenderTexture.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="SKLib\SceneBase.h">
+      <Filter>Library</Filter>
+    </ClInclude>
+    <ClInclude Include="Task\Number.h">
+      <Filter>Task</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\json.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Scenes\TitleScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\TutorialScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\DebugFont.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\InputManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\CollisionManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\ResultScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\LoadScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\BinaryFile.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\TaskManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\SRVManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\SoundManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\UserInterface.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\SelectScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\UIs\ShieldUI.cpp">
+      <Filter>GameObjects\UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\UIs\SwordUI.cpp">
+      <Filter>GameObjects\UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\UIs\HealthUI.cpp">
+      <Filter>GameObjects\UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\TitleCamera.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\TutorialManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\ScreenManager.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\UIs\StaminaUI.cpp">
+      <Filter>GameObjects\UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\Camera.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\DebugDraw.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\DeviceResources.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\GameCamera.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\TransitionMask.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Stages\Enemy.cpp">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\BackGround.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Gimmicks\Gate.cpp">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Gimmicks\GimmickBlock.cpp">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Stages\Goal.cpp">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Gimmicks\Item.cpp">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\UIs\Menu.cpp">
+      <Filter>GameObjects\UIs</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\SwirlParticle.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\SwitchParticle.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\ParticleUtility.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Stages\StageObject.cpp">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Gimmicks\Switch.cpp">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\Shadow.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\PortalParticle.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Stages\Player.cpp">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\StageScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Gimmicks\Platform.cpp">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Gimmicks\Portal.cpp">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Stage.cpp">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="SKLib\RenderTexture.cpp">
+      <Filter>Library</Filter>
+    </ClCompile>
+    <ClCompile Include="Task\Number.cpp">
+      <Filter>Task</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="settings.manifest">
+      <Filter>Assets</Filter>
+    </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Resources\Stages\stage03.json">
+      <Filter>Stages</Filter>
+    </None>
+    <None Include="Resources\Stages\stage02.json">
+      <Filter>Stages</Filter>
+    </None>
+    <None Include="Resources\Stages\stage01.json">
+      <Filter>Stages</Filter>
+    </None>
+    <None Include="Resources\Stages\test.json">
+      <Filter>Stages</Filter>
+    </None>
+    <None Include="Resources\Stages\tutorial.json">
+      <Filter>Stages</Filter>
+    </None>
+    <None Include="Resources\best_times.json">
+      <Filter>TimeRecords</Filter>
+    </None>
+    <None Include="Resources\last_times.json">
+      <Filter>TimeRecords</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

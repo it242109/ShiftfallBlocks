@@ -1,0 +1,984 @@
+//--------------------------------------------------------------------------------------
+// File: Player.cpp
+//
+// プレイヤーの処理から描画までまとめたクラス
+//--------------------------------------------------------------------------------------
+#include "pch.h"
+#include "Player.h"
+#include "SKLib/ReadData.h"
+
+#include "SKLib/GameCamera.h"
+#include "SKLib/InputManager.h"
+#include "SKLib/SoundManager.h"
+#include "SKLib/TutorialManager.h"
+
+/*
+* @brief コンストラクタ
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+Player::Player()
+	: m_floorHit(false),
+	  m_isJumping(false),
+	  m_verticalVelocity(0.0f),
+	  m_lives(0),
+	  m_attackCount(0),
+	  m_defenseCount(0),
+	  m_isInvincible(false),
+	  m_isAttacking(false),
+	  m_gameCamera(nullptr),
+	  m_isGoal(false),
+	  m_isDead(false),
+	  m_invincibilityTime(0.0f),
+	  m_attackRange(1.0f)
+{
+}
+
+/*
+* @brief デストラクタ
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+Player::~Player()
+{
+}
+
+/*
+* @brief 初期化処理
+*
+* @param[in]  startPos 開始座標
+* 
+* @return なし
+*/
+void Player::Initialize(const DirectX::SimpleMath::Vector3& startPos)
+{
+	CreateDeviceDependentResources();
+
+	// モデルの大きさを初期化
+	m_playerScale = { 1.0f,1.45f,1.0f };
+
+	// 位置設定
+	m_startPosition = startPos;
+	m_playerPosition = startPos;
+
+	// 向きを初期化
+	m_playerForward = { 0.0f, 0.0f, -1.0f };
+
+	// チェックポイントの初期化
+	m_respawnPoint = startPos;
+
+	// 当たり判定の作成
+	m_playerCollision = m_playerCollision.CreateAABB(m_playerPosition, m_playerScale);
+	m_playerTrans = DirectX::SimpleMath::Matrix::CreateTranslation(m_playerPosition);
+
+	// 残機の初期化
+	m_lives = 3;
+
+	// 攻撃可能回数／防御可能回数の初期化
+	m_defenseCount = 0;
+	m_attackCount = 0;
+
+	// 無敵時間の初期化
+	m_invincibilityTime = 0.0f;
+
+	// スタミナの初期化
+	m_stamina = MAX_STAMINA;
+}
+
+/*
+* @brief 更新処理
+*
+* @param[in]  elapsedTime 前フレームからの経過時間
+* 
+* @return なし
+*/
+void Player::Update(float elapsedTime)
+{
+	// キー入力の取得
+	auto kb = DirectX::Keyboard::Get().GetState();
+	auto& mouse = DirectX::Mouse::Get();
+
+	//現在のホイール値を取得
+	int wheelDelta = mouse.GetState().scrollWheelValue;
+	mouse.ResetScrollWheelValue();
+
+	// ホイールが動いた場合のみ攻撃範囲を更新
+	if (wheelDelta != 0 && m_attackCount >= 1)
+	{
+		UpdateAttackRange(wheelDelta);
+		DirectX::Mouse::Get().ResetScrollWheelValue();
+	}
+
+	// サウンドマネージャーの更新
+	auto& sound = SoundManager::GetInstance();
+	sound.Update();
+
+	// カメラの水平角度から前方ベクトルを計算
+	DirectX::SimpleMath::Matrix rotationMatrix =
+		DirectX::SimpleMath::Matrix::CreateRotationY(m_cameraHorizontalAngle);
+
+	// チュートリアル表示中なら移動できないようにする
+	if (m_tutorialManager && m_tutorialManager->IsPlayerLocked())
+	{
+		return;
+	}
+
+	// 移動方向ベクトル
+	DirectX::SimpleMath::Vector3 moveDirection(0.0f, 0.0f, 0.0f);
+
+	// キー入力で移動方向を決定
+	if (kb.W) moveDirection.z -= NORMAL_SPEED;
+	if (kb.S) moveDirection.z += NORMAL_SPEED;
+	if (kb.A) moveDirection.x -= NORMAL_SPEED;
+	if (kb.D) moveDirection.x += NORMAL_SPEED;
+
+	// ダッシュの入力条件
+	bool isDashInput = kb.LeftShift && !m_isJumping; 
+	// ダッシュの実行判定
+	bool isDashing = isDashInput && m_canDash && (m_stamina > 0.0f);
+
+	// スタミナの処理
+	if (isDashing)
+	{
+		// 消費
+		m_stamina -= STAMINA_COST_PER_SEC * elapsedTime;
+
+		// スタミナが０以下になったら
+		if (m_stamina <= 0.0f)
+		{
+			m_stamina = 0.0f;
+			m_canDash = false;
+		}
+	}
+	else
+	{
+		// 回復処理
+		if (m_stamina < MAX_STAMINA)
+		{
+			m_stamina += STAMINA_REGEN_RATE * elapsedTime;
+			// 回復が最大値を超えないようにする
+			if( m_stamina > MAX_STAMINA)
+			{
+				m_stamina = MAX_STAMINA;
+			}
+		}
+		// スタミナが最低回復量を超えたらダッシュ再開可能にする
+		if (m_stamina > MAX_STAMINA * 0.5f)
+		{
+			m_canDash = true;
+		}
+	}
+
+	// 移動方向がある場合のみ処理
+	if (moveDirection.LengthSquared() > 0.0f)
+	{
+		moveDirection.Normalize();
+
+		// 最終的な速度を決定
+		float speed = isDashing ? DASH_SPEED : NORMAL_SPEED;
+
+		// 外部で設定されたカメラ角度に合わせて移動方向を回転
+		rotationMatrix = DirectX::SimpleMath::Matrix::CreateRotationY(m_cameraHorizontalAngle);
+		moveDirection = DirectX::SimpleMath::Vector3::Transform(moveDirection, rotationMatrix);
+
+		// 移動を適用
+		m_playerPosition += moveDirection * speed;
+
+		// プレイヤーの向きを更新
+		m_playerForward = moveDirection;
+		m_playerForward.Normalize();
+	}
+
+	// ジャンプ処理
+	if (InputManager::Get().IsKeyPressed(DirectX::Keyboard::Keys::Space) && m_floorHit && !m_isJumping)
+	{
+		m_isJumping = true;
+		m_verticalVelocity = JUMP_POWER;
+		m_floorHit = false;
+
+		sound.Play(L"JUMP");
+	}
+	if (m_isJumping || !m_floorHit)
+	{
+		// 上昇中の処理
+		m_verticalVelocity += GRAVITY * elapsedTime;
+		m_playerPosition.y += m_verticalVelocity * elapsedTime;
+	}
+	else
+	{
+		m_verticalVelocity = 0.0f;
+	}
+
+	// 攻撃処理
+	// 左クリックで攻撃
+	if (m_attackCount >= 1 && InputManager::Get().IsMousePressedLeft())
+	{
+		sound.Play(L"ATTACK");
+
+		m_attackCount--;
+		m_isAttacking = true;
+		m_attackTimer = 0.2f;
+	}
+
+	// 攻撃タイマーを減らす
+	if (m_isAttacking) 
+	{
+		m_attackTimer -= elapsedTime;
+		if (m_attackTimer <= 0.0f) 
+		{
+			m_isAttacking = false;
+		}
+	}
+	
+	// 防御時に効果音を再生
+	if (m_isPlayShieldSound)
+	{
+		sound.Play(L"DEFENSE");
+		m_isPlayShieldSound = false;
+	}
+	// ダメージ時に効果音を再生
+	if (m_isPlayDamageSound)
+	{
+		sound.Play(L"DAMAGE");
+		m_isPlayDamageSound = false;
+	}
+
+	// 落下したら
+	if (m_playerPosition.y <= -12.0f)
+	{
+		sound.Play(L"FALL");
+		// 残機を一つ減らす
+		PlayerKill(); 
+	}
+
+	// 無敵時間の処理
+	if (m_invincibilityTime > 0.0f)
+		m_invincibilityTime -= elapsedTime;
+
+	// リスポーン処理
+	if (m_isDead) 
+		Respawn();
+
+	// AABBを更新
+	m_playerCollision = m_playerCollision.CreateAABB(m_playerPosition, m_playerScale);
+
+	// 攻撃コライダーの位置を更新
+	DirectX::SimpleMath::Vector3 attackPos = m_playerPosition + (m_playerForward * m_attackRange);
+	DirectX::SimpleMath::Vector3 attackScale = { 1.0f, 1.0f, 1.0f };
+	m_attackCollision = m_attackCollision.CreateAABB(attackPos, attackScale);
+
+	// ワールド行列を更新
+	m_playerTrans = DirectX::SimpleMath::Matrix::CreateTranslation(m_playerPosition);
+}
+
+/*
+* @brief 描画処理
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::Render()
+{
+	auto context = m_deviceResources->GetD3DDeviceContext();
+	auto states = m_states;
+
+	// ビュー行列の取得
+	if (m_gameCamera)
+	{
+		m_view = m_gameCamera->GetCameraMatrix();
+	}
+	else
+	{
+		// デフォルトのビュー行列を設定
+		m_view = DirectX::SimpleMath::Matrix::CreateLookAt(
+			DirectX::SimpleMath::Vector3(0, 10, 10),
+			DirectX::SimpleMath::Vector3(0, 0, 0),
+			DirectX::SimpleMath::Vector3(0, 1, 0)
+		);
+	}
+
+	// プレイヤーのスケール設定
+	DirectX::SimpleMath::Matrix playerScale = DirectX::SimpleMath::Matrix::CreateScale(m_playerScale);
+
+	// プレイヤーの回転計算
+	float playerRotationY = 0.0f;
+	if (m_playerForward.LengthSquared() > 0.0f)
+	{
+		playerRotationY = atan2f(m_playerForward.x, m_playerForward.z);
+	}
+	DirectX::SimpleMath::Matrix playerRot = DirectX::SimpleMath::Matrix::CreateRotationY(playerRotationY);
+
+	// プレイヤーのワールド行列
+	DirectX::SimpleMath::Matrix playerWorld = playerScale * playerRot * m_playerTrans;
+
+	if (m_invincibilityTime > 0.0f)
+	{
+		// 点滅速度
+		float blinkSpeed = 5.0f;
+
+		// 点滅のON／OFFを判定
+		if (fmod(m_invincibilityTime * blinkSpeed, 1.0f) < 0.5f)
+		{
+			// モデルの描画
+			m_playerModel->Draw(context, *states, playerWorld, m_view, m_proj);
+		}
+	}
+	else
+	{
+		// 通常描画
+		m_playerModel->Draw(context, *states, playerWorld, m_view, m_proj);
+	}
+
+	// 所持アイテムの描画：剣
+	if (m_havingSwordModel && m_attackCount >= 1)
+	{
+		// オフセットの作成
+		DirectX::SimpleMath::Vector3 swordOffset = { 0.4f,0.1f, 0.0f };
+		DirectX::SimpleMath::Matrix swordTrans = DirectX::SimpleMath::Matrix::CreateTranslation(swordOffset);
+
+		// 剣の回転
+		constexpr float swordAngleY = DirectX::XMConvertToRadians(90.0f);
+		constexpr float swordAngleX = DirectX::XMConvertToRadians(0.0f);
+		DirectX::SimpleMath::Matrix swordRotY = DirectX::SimpleMath::Matrix::CreateRotationY(swordAngleY);
+		DirectX::SimpleMath::Matrix swordRotX = DirectX::SimpleMath::Matrix::CreateRotationX(swordAngleX);
+
+		// ソードのスケール
+		DirectX::SimpleMath::Matrix swordScale = DirectX::SimpleMath::Matrix::CreateScale(0.8f);
+
+		// プレイヤーのワールド行列×オフセット
+		DirectX::SimpleMath::Matrix swordWorld = swordScale * swordRotX * swordRotY * swordTrans * playerWorld;
+
+		// 描画
+		m_havingSwordModel->Draw(context, *states, swordWorld, m_view, m_proj);
+	}
+
+	// 所持アイテムの描画：盾
+	if (m_havingShieldModel && m_defenseCount >= 1)
+	{
+		// オフセットの作成
+		DirectX::SimpleMath::Vector3 shieldOffset = { -0.5f,0.1f,0.0f };
+		DirectX::SimpleMath::Matrix shieldTrans = DirectX::SimpleMath::Matrix::CreateTranslation(shieldOffset);
+
+		// 盾の回転
+		constexpr float shieldAngleY = DirectX::XMConvertToRadians(0.0f);
+		constexpr float shieldAngleX = DirectX::XMConvertToRadians(0.0f);
+		DirectX::SimpleMath::Matrix shieldRotY = DirectX::SimpleMath::Matrix::CreateRotationY(shieldAngleY);
+		DirectX::SimpleMath::Matrix shieldRotX = DirectX::SimpleMath::Matrix::CreateRotationY(shieldAngleX);
+
+		// 盾のスケール
+		DirectX::SimpleMath::Matrix shieldScale = DirectX::SimpleMath::Matrix::CreateScale(0.6f);
+
+		// プレイヤーのワールド行列×オフセット
+		DirectX::SimpleMath::Matrix shieldWorld = shieldScale * shieldRotX * shieldRotY * shieldTrans * playerWorld;
+
+		// 描画
+		m_havingShieldModel->Draw(context, *states, shieldWorld, m_view, m_proj);
+	}
+}
+
+/*
+* @brief 終了処理
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::Finalize()
+{
+}
+
+/*
+* @brief デバイスに依存するリソースを作成する関数
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::CreateDeviceDependentResources()
+{
+	auto device = m_deviceResources->GetD3DDevice();
+	auto context = m_deviceResources->GetD3DDeviceContext();
+
+	// スプライトバッチの作成
+	m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(context);
+
+	// エフェクトファクトリーの作成
+	std::unique_ptr<DirectX::EffectFactory> fx = std::make_unique<DirectX::EffectFactory>(device);
+	fx->SetDirectory(L"Resources/Models");
+
+	// プリミティブバッチの初期化
+	m_primitiveBatch = std::make_unique<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>>(context);
+
+	// モデルの読み込み
+	m_playerModel = DirectX::Model::CreateFromSDKMESH(device, L"Resources/Models/player.sdkmesh", *fx);
+
+	// アイテムのモデルの読み込み
+	m_havingSwordModel = DirectX::Model::CreateFromSDKMESH(device, L"Resources/Models/sword.sdkmesh", *fx);
+	m_havingShieldModel = DirectX::Model::CreateFromSDKMESH(device, L"Resources/Models/shield.sdkmesh", *fx);
+
+	// 影用の円形モデルの読み込み
+	m_shadowModel = DirectX::Model::CreateFromSDKMESH(device, L"Resources/Models/circle.sdkmesh", *fx);
+
+	// 影描画用の深度ステンシルステートを作成
+	D3D11_DEPTH_STENCIL_DESC shadowDesc = {};
+	shadowDesc.DepthEnable = TRUE;
+	shadowDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	shadowDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	shadowDesc.StencilEnable = FALSE;
+
+	device->CreateDepthStencilState(&shadowDesc, m_depthStencilState_Shadow.ReleaseAndGetAddressOf());
+
+	// 影用ピクセルシェーダーの読み込み
+	std::vector<uint8_t> ps = DX::ReadData(L"Resources/Shaders/PixelShader.cso");
+	device->CreatePixelShader(ps.data(), ps.size(), nullptr, m_PS.ReleaseAndGetAddressOf());
+
+	if (!m_deviceResources) return;
+
+	// 射影行列の作成
+	RECT rect = m_deviceResources->GetOutputSize();
+	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
+		DirectX::XMConvertToRadians(45.0f),
+		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
+		0.1f, 100.0f
+	);
+}
+
+/*
+* @brief 影の描画
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::RenderShadow()
+{
+	auto context = m_deviceResources->GetD3DDeviceContext();
+
+	// ライトの方向（斜め上から - 影が見えやすい角度）
+	DirectX::SimpleMath::Vector3 lightDir = DirectX::SimpleMath::Vector3(0.2f, 1.0f, 0.2f);
+	lightDir.Normalize();
+
+	// プレイヤーが立っている床を検出
+	float playerX = m_playerPosition.x;
+	float playerY = m_playerPosition.y;
+	float playerZ = m_playerPosition.z;
+	float closestSurfaceY = m_currentSurfaceY;
+
+	// 床
+	for (size_t i = 0; i < m_floorPositions.size(); ++i) 
+	{
+		// 床の半分の幅・奥行きを計算
+		float halfWidth = m_floorScales[i].x * 0.5f;
+		float halfDepth = m_floorScales[i].z * 0.5f;
+
+		// この床のXZ範囲
+		float minX = m_floorPositions[i].x - halfWidth;
+		float maxX = m_floorPositions[i].x + halfWidth;
+		float minZ = m_floorPositions[i].z - halfDepth;
+		float maxZ = m_floorPositions[i].z + halfDepth;
+
+		// プレイヤーがこの床のXZ範囲内にいるかチェック
+		if (playerX >= minX && playerX <= maxX &&
+			playerZ >= minZ && playerZ <= maxZ)
+		{
+			// この床の上面のY座標
+			float topY = m_floorPositions[i].y + (m_floorScales[i].y * 0.5f);
+
+			// プレイヤーが床より上にいる場合、この床を候補にする
+			if (topY <= playerY && topY > closestSurfaceY)
+			{
+				closestSurfaceY = topY;
+			}
+		}
+	}
+	// 足場
+	for (size_t j = 0; j < m_platformPositions.size(); ++j) 
+	{
+		// 足場の半分の幅・奥行を計算
+		float halfWidth = m_platformScales[j].x * 0.5f;
+		float halfDepth = m_platformScales[j].z * 0.5f;
+
+		// この足場のXZ範囲
+		float minX = m_platformPositions[j].x - halfWidth;
+		float maxX = m_platformPositions[j].x + halfWidth;
+		float minZ = m_platformPositions[j].z - halfDepth;
+		float maxZ = m_platformPositions[j].z + halfDepth;
+
+		// プレイヤーがこの足場のXZ範囲内にいるかチェック
+		if (playerX >= minX && playerX <= maxX &&
+			playerZ >= minZ && playerZ <= maxZ)
+		{
+			// この足場の上面のY座標
+			float topY = m_platformPositions[j].y + (m_platformScales[j].y * 0.5f);
+
+			// プレイヤーが足場より上にいる場合、この足場を候補	
+			if (topY <= playerY && topY > closestSurfaceY)
+			{
+				closestSurfaceY = topY;
+			}
+		}
+	}
+
+	// Zファイティング防止のため、少し上げる
+	closestSurfaceY += 0.03f;
+
+	// シャドウマトリクスの作成
+	DirectX::SimpleMath::Plane groundPlane = DirectX::SimpleMath::Plane(0.0f, 1.0f, 0.0f, -closestSurfaceY);
+	DirectX::SimpleMath::Matrix shadowMatrix = DirectX::SimpleMath::Matrix::CreateShadow(lightDir, groundPlane);
+
+	// 影の描画設定
+	if (m_floorHit || m_isJumping)
+	{
+		// 影のスケーリングを計算
+		float scaleFactor = 1.0f;
+
+		if (m_isJumping)
+		{
+			//ジャンプ中は影を小さくする
+			float heightDiff = m_playerPosition.y - closestSurfaceY;
+			scaleFactor = 1.0f / (1.0f + heightDiff * 0.03f);
+			scaleFactor = std::max(0.2f, scaleFactor); 
+		}
+
+		DirectX::SimpleMath::Matrix shadowScale = DirectX::SimpleMath::Matrix::CreateScale(scaleFactor);
+
+		// プレイヤーの回転計算
+		float playerRotationY = 0.0f;
+		if (m_playerForward.LengthSquared() > 0.0f)
+		{
+			playerRotationY = atan2f(m_playerForward.x, m_playerForward.z);
+		}
+		DirectX::SimpleMath::Matrix playerRot = DirectX::SimpleMath::Matrix::CreateRotationY(playerRotationY);
+
+		// 影の位置計算
+		DirectX::SimpleMath::Vector3 shadowPos = m_playerPosition;
+		DirectX::SimpleMath::Matrix shadowTrans = DirectX::SimpleMath::Matrix::CreateTranslation(shadowPos);
+
+		// 影のワールド行列を作成
+		DirectX::SimpleMath::Matrix shadowWorldBase = shadowScale * playerRot * shadowTrans;
+
+		// シャドウマトリクスを適用
+		DirectX::SimpleMath::Matrix finalShadowMatrix = shadowWorldBase * shadowMatrix;
+
+		// 影の描画
+		m_shadowModel->Draw(context, *m_states, finalShadowMatrix, m_view, m_proj,
+			false, [&]()
+			{
+				// アルファブレンドを有効にして透明な影を描画
+				context->OMSetBlendState(m_states->AlphaBlend(), nullptr, 0xffffffff);
+
+				// 深度テストは有効、深度書き込みは無効
+				context->OMSetDepthStencilState(m_depthStencilState_Shadow.Get(), 1);
+
+				// 背面カリングを無効にする（影が裏返ったときも見えるように）
+				context->RSSetState(m_states->CullNone());
+
+				// ピクセルシェーダーの設定
+				context->PSSetShader(m_PS.Get(), nullptr, 0);
+			}
+		);
+	}
+}
+
+/*
+* @brief ダメージ処理
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::TakeDamage()
+{
+	if (m_invincibilityTime > 0.0f) return;
+
+	// 防御処理
+	if (m_defenseCount > 0)
+	{
+		m_defenseCount--;
+		m_invincibilityTime = 1.0f;
+		m_isPlayShieldSound = true;
+	}
+	// ダメージ処理
+	else if (m_lives > 0) 
+	{
+		m_lives--;
+		m_invincibilityTime = 2.0f;
+		m_isPlayDamageSound = true;
+		m_isDead = true;
+	}
+}
+
+/*
+* @brief プレイヤーのリスポーン
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::Respawn()
+{
+	// スタート位置に戻す
+	m_playerPosition = m_startPosition;
+
+	// 各処理のリセット
+	m_isDead = false;
+	m_isJumping = false;
+	m_floorHit = false;
+	m_verticalVelocity = 0.0f;
+
+	// 所持品のリセット
+	m_attackCount = 0;
+	m_defenseCount = 0;
+
+	m_playerTrans = DirectX::SimpleMath::Matrix::CreateTranslation(m_playerPosition);
+	m_playerCollision = m_playerCollision.CreateAABB(m_playerPosition, m_playerScale);
+}
+
+/*
+* @brief 当たり判定の更新
+*
+* @param[in]  collision 当たり判定
+* @param[in]  position　位置
+* 
+* @return なし
+*/
+void Player::UpdateCollision(const AABB& collision, const DirectX::SimpleMath::Vector3& position)
+{
+	if (!m_playerCollision.CheckAABBCollision(m_playerCollision, collision))
+		return;
+
+	// プレイヤーと足場の重なり量を計算
+	DirectX::SimpleMath::Vector3 overlap;
+	overlap.x = std::min(m_playerCollision.max.x, collision.max.x) -
+		std::max(m_playerCollision.min.x, collision.min.x);
+	overlap.y = std::min(m_playerCollision.max.y, collision.max.y) -
+		std::max(m_playerCollision.min.y, collision.min.y);
+	overlap.z = std::min(m_playerCollision.max.z, collision.max.z) -
+		std::max(m_playerCollision.min.z, collision.min.z);
+
+	// 最も小さい重なり方向に押し戻す
+	if (overlap.y <= overlap.x && overlap.y <= overlap.z)
+	{
+		float playerBottom = m_playerPosition.y - (m_playerScale.y * 0.5f);
+		float objectTop = position.y + (collision.max.y - collision.min.y) * 0.5f;
+
+		// 着地の許容範囲
+		const float landingThreshold = 0.2f;
+
+		// 上から着地した場合
+		if (playerBottom >= objectTop - landingThreshold && m_verticalVelocity <= 0.0f)
+		{
+			// プレイヤーを床の上に正しく置く
+			m_playerPosition.y = objectTop + (m_playerScale.y * 0.5f);
+
+			// フラグ更新
+			m_floorHit = true;
+			m_isJumping = false;
+			m_verticalVelocity = 0.0f;
+
+			// 着地した面のY座標を記録
+			m_currentSurfaceY = objectTop;
+		}
+		else
+		{
+			// 下からぶつかった場合
+			m_playerPosition.y -= overlap.y;
+			m_verticalVelocity = 0.0f;
+		}
+	}
+	else if (overlap.x < overlap.z)
+	{
+		// X方向の衝突
+		if (m_playerPosition.x < position.x)
+			m_playerPosition.x -= overlap.x;
+		else
+			m_playerPosition.x += overlap.x;
+	}
+	else
+	{
+		// Z方向の衝突
+		if (m_playerPosition.z < position.z)
+			m_playerPosition.z -= overlap.z;
+		else
+			m_playerPosition.z += overlap.z;
+	}
+
+	// AABB再生成
+	m_playerCollision = m_playerCollision.CreateAABB(m_playerPosition, m_playerScale);
+}
+
+/*
+* @brief マウスホイール入力に基づいて攻撃範囲を更新する
+*
+* @param[in] wheelDelta マウスホイールの回転量
+* 
+* @return なし
+*/
+void Player::UpdateAttackRange(int wheelDelta)
+{
+	// 最小値／最大値
+	const float MIN_RANGE = 1.0f;
+	const float MAX_RANGE = 5.0f;
+
+	// 一回のホイールの刻みで変化させる量
+	const float RANGE_STEP = 1.0f;
+	const int WHEEL_TICKS = 120;
+
+	// 変化量を計算
+	float delta = (float)wheelDelta / WHEEL_TICKS * RANGE_STEP;
+
+	// 攻撃範囲を更新
+	m_attackRange += delta;
+
+	// 範囲制限の間に収める
+#ifdef __cpp_lib_clamp
+	m_attackRange = std::clamp(m_attackRange, MIN_RANGE, MAX_RANGE);
+#else
+	m_attackRange = std::max(MIN_RANGE, std::min(MAX_RANGE, m_attackRange));
+#endif // __cpp_lib_clamp
+}
+
+void Player::SetRespawnPoint(const DirectX::SimpleMath::Vector3& pos, float yOffset)
+{
+	m_respawnPoint = pos;
+	if (yOffset != 0.0f)
+	{
+		m_respawnPoint.y += yOffset;
+	}
+}
+
+/*
+* @brief 床情報を設定するメソッド
+*
+* @param[in]  positions　床の位置
+* @param[in]  scales　　床の大きさ
+* 
+* @return なし
+*/
+void Player::SetFloorData(const std::vector<DirectX::SimpleMath::Vector3>& f_positions, const std::vector<DirectX::SimpleMath::Vector3>& f_scales)
+{
+	m_floorPositions = f_positions;
+	m_floorScales = f_scales;
+}
+
+/*
+* @brief 足場情報を設定するメソッド
+*
+* @param[in]  positions　足場の位置
+* @param[in]  scales　　足場の大きさ
+* 
+* @return なし
+*/
+void Player::SetPlatformData(const std::vector<DirectX::SimpleMath::Vector3>& pf_positions, const std::vector<DirectX::SimpleMath::Vector3>& pf_scales)
+{
+	m_platformPositions = pf_positions;
+	m_platformScales = pf_scales;
+}
+
+/*
+* @brief 位置を設定
+*
+* @param[in]  x　X座標
+* @param[in]  y　Y座標
+* @param[in]  z  Z座標
+* 
+* @return なし
+*/
+void Player::SetPosition(float x, float y, float z)
+{
+	m_playerPosition.x = x;
+	m_playerPosition.y = y;
+	m_playerPosition.z = z;
+}
+
+/*
+* @brief 床の着地状態をリセット
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::ResetFloorHit()
+{
+	m_floorHit = false;
+}
+
+/*
+* @brief 死亡処理
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::PlayerKill()
+{
+	// 無敵時間中だったら処理しない
+	if (m_invincibilityTime > 0.0f) return;
+
+	// プレイヤー死亡処理
+	m_lives--;
+	m_isDead = true;
+	m_invincibilityTime = 2.0f;
+}
+
+/*
+* @brief 剣の範囲の円
+*
+* @param[in]  なし
+* 
+* @return なし
+*/
+void Player::SwordRangeCircle()
+{
+	if (!m_primitiveBatch) return;
+
+	m_primitiveBatch->Begin();
+
+	// 線の色と太さ
+	auto lineColor = DirectX::Colors::OrangeRed;
+	const int segments = 32;
+
+	// 線の太さ
+	const float lineWidth = 1.1f;
+
+	const float radius = (m_attackCollision.max.x - m_attackCollision.min.x) * 0.5f;
+	const float innerRadius = radius - lineWidth;
+
+	// 中心座標
+	DirectX::SimpleMath::Vector3 center;
+	center.x = (m_attackCollision.min.x + m_attackCollision.max.x) * 0.5f;
+	center.y = m_attackCollision.min.y + 0.1f;
+	center.z = (m_attackCollision.min.z + m_attackCollision.max.z) * 0.5f;
+
+	// 最初のセグメントの頂点を計算
+	DirectX::SimpleMath::Vector3 prevOuter, prevInner;
+
+	// 最初の角度
+	prevOuter.x = center.x + radius;
+	prevOuter.y = center.y;
+	prevOuter.z = center.z;
+
+	prevInner.x = center.x + innerRadius;
+	prevInner.y = center.y;
+	prevInner.z = center.z;
+
+	for (int i = 1; i <= segments; ++i)
+	{
+		float angle = (float)i * (2.0f * DirectX::XM_PI / (float)segments);
+		float cosA = cosf(angle);
+		float sinA = sinf(angle);
+
+		// 現在のセグメントの外周と内周の頂点を計算
+		DirectX::SimpleMath::Vector3 currentOuter =
+		{
+			center.x + radius * cosA,
+			center.y,
+			center.z + radius * sinA
+		};
+		DirectX::SimpleMath::Vector3 currentInner =
+		{
+			center.x + innerRadius * cosA,
+			center.y,
+			center.z + innerRadius * sinA
+		};
+
+		m_primitiveBatch->DrawTriangle(
+			{ prevOuter,   lineColor },
+			{ prevInner,   lineColor },
+			{ currentInner,lineColor }
+		);
+		m_primitiveBatch->DrawTriangle(
+			{ currentOuter,lineColor },
+			{ prevOuter,   lineColor },
+			{ currentInner,lineColor }
+		);
+
+		// 次のループのために頂点を更新
+		prevOuter = currentOuter;
+		prevInner = currentInner;
+	}
+	m_primitiveBatch->End();
+}
+
+/*
+* @brief コライダーの線
+*
+* @param[in] なし
+* 
+* @return なし
+*/
+void Player::ColliderLine()
+{
+	if (!m_primitiveBatch) return;
+
+	// コライダー線の色
+	auto lineColorA = DirectX::Colors::Red;
+	auto lineColorB = DirectX::Colors::MediumPurple;
+
+	m_primitiveBatch->Begin();
+	// AABBの頂点を計算
+	DirectX::SimpleMath::Vector3 playerCorners[8] =
+	{
+		{ m_playerCollision.min.x, m_playerCollision.min.y, m_playerCollision.min.z },
+		{ m_playerCollision.max.x, m_playerCollision.min.y, m_playerCollision.min.z },
+		{ m_playerCollision.max.x, m_playerCollision.max.y, m_playerCollision.min.z },
+		{ m_playerCollision.min.x, m_playerCollision.max.y, m_playerCollision.min.z },
+		{ m_playerCollision.min.x, m_playerCollision.min.y, m_playerCollision.max.z },
+		{ m_playerCollision.max.x, m_playerCollision.min.y, m_playerCollision.max.z },
+		{ m_playerCollision.max.x, m_playerCollision.max.y, m_playerCollision.max.z },
+		{ m_playerCollision.min.x, m_playerCollision.max.y, m_playerCollision.max.z }
+	};
+	DirectX::SimpleMath::Vector3 attackCorners[8] =
+	{
+		{ m_attackCollision.min.x, m_attackCollision.min.y, m_attackCollision.min.z },
+		{ m_attackCollision.max.x, m_attackCollision.min.y, m_attackCollision.min.z },
+		{ m_attackCollision.max.x, m_attackCollision.max.y, m_attackCollision.min.z },
+		{ m_attackCollision.min.x, m_attackCollision.max.y, m_attackCollision.min.z },
+		{ m_attackCollision.min.x, m_attackCollision.min.y, m_attackCollision.max.z },
+		{ m_attackCollision.max.x, m_attackCollision.min.y, m_attackCollision.max.z },
+		{ m_attackCollision.max.x, m_attackCollision.max.y, m_attackCollision.max.z },
+		{ m_attackCollision.min.x, m_attackCollision.max.y, m_attackCollision.max.z }
+	};
+
+	/*/////////////////////////////////////プレイヤーの線の描画/////////////////////////////////*/
+
+	// 前面の線を描画
+	m_primitiveBatch->DrawLine({ playerCorners[0], lineColorA }, { playerCorners[1], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[1], lineColorA }, { playerCorners[2], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[2], lineColorA }, { playerCorners[3], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[3], lineColorA }, { playerCorners[0], lineColorA });
+
+	m_primitiveBatch->DrawLine({ attackCorners[0], lineColorB }, { attackCorners[1], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[1], lineColorB }, { attackCorners[2], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[2], lineColorB }, { attackCorners[3], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[3], lineColorB }, { attackCorners[0], lineColorB });
+
+	// 背面の線を描画
+	m_primitiveBatch->DrawLine({ playerCorners[4], lineColorA }, { playerCorners[5], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[5], lineColorA }, { playerCorners[6], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[6], lineColorA }, { playerCorners[7], lineColorA});
+	m_primitiveBatch->DrawLine({ playerCorners[7], lineColorA }, { playerCorners[4], lineColorA });
+
+	m_primitiveBatch->DrawLine({ attackCorners[4], lineColorB }, { attackCorners[5], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[5], lineColorB }, { attackCorners[6], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[6], lineColorB }, { attackCorners[7], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[7], lineColorB }, { attackCorners[4], lineColorB});
+
+	// 前面と背面をつなぐ線を描画
+	m_primitiveBatch->DrawLine({ playerCorners[0], lineColorA }, { playerCorners[4], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[1], lineColorA }, { playerCorners[5], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[2], lineColorA }, { playerCorners[6], lineColorA });
+	m_primitiveBatch->DrawLine({ playerCorners[3], lineColorA }, { playerCorners[7], lineColorA });
+
+	m_primitiveBatch->DrawLine({ attackCorners[0], lineColorB }, { attackCorners[4], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[1], lineColorB }, { attackCorners[5], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[2], lineColorB }, { attackCorners[6], lineColorB });
+	m_primitiveBatch->DrawLine({ attackCorners[3], lineColorB }, { attackCorners[7], lineColorB });
+
+	m_primitiveBatch->End();
+}

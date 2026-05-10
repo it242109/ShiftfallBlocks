@@ -1,0 +1,323 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <RootNamespace>ShiftfallBlocks</RootNamespace>
+    <ProjectGuid>{1131e773-d335-4a45-b88b-800a51c4a9fb}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;xaudio2.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <GuardEHContMetadata>true</GuardEHContMetadata>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;dxguid.lib;uuid.lib;kernel32.lib;user32.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;xaudio2.lib;windowscodecs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="GameObjects\Effects\BackGround.h" />
+    <ClInclude Include="GameObjects\Effects\ParticleUtility.h" />
+    <ClInclude Include="GameObjects\Effects\PortalParticle.h" />
+    <ClInclude Include="GameObjects\Effects\Shadow.h" />
+    <ClInclude Include="GameObjects\Effects\SwirlParticle.h" />
+    <ClInclude Include="GameObjects\Effects\SwitchParticle.h" />
+    <ClInclude Include="GameObjects\Gimmicks\Gate.h" />
+    <ClInclude Include="GameObjects\Gimmicks\GimmickBlock.h" />
+    <ClInclude Include="GameObjects\Gimmicks\Item.h" />
+    <ClInclude Include="GameObjects\Gimmicks\Platform.h" />
+    <ClInclude Include="GameObjects\Gimmicks\Portal.h" />
+    <ClInclude Include="GameObjects\Gimmicks\Switch.h" />
+    <ClInclude Include="GameObjects\Stage.h" />
+    <ClInclude Include="GameObjects\Stages\Enemy.h" />
+    <ClInclude Include="GameObjects\Stages\Goal.h" />
+    <ClInclude Include="GameObjects\Stages\Player.h" />
+    <ClInclude Include="GameObjects\Stages\StageObject.h" />
+    <ClInclude Include="GameObjects\UIs\HealthUI.h" />
+    <ClInclude Include="GameObjects\UIs\Menu.h" />
+    <ClInclude Include="GameObjects\UIs\ShieldUI.h" />
+    <ClInclude Include="GameObjects\UIs\StaminaUI.h" />
+    <ClInclude Include="Resources\json.hpp" />
+    <ClInclude Include="SKLib\RenderTexture.h" />
+    <ClInclude Include="SKLib\SceneBase.h" />
+    <ClInclude Include="SKLib\Camera.h" />
+    <ClInclude Include="SKLib\DebugDraw.h" />
+    <ClInclude Include="SKLib\DeviceResources.h" />
+    <ClInclude Include="SKLib\GameCamera.h" />
+    <ClInclude Include="SKLib\ReadData.h" />
+    <ClInclude Include="SKLib\ScreenManager.h" />
+    <ClInclude Include="GameObjects\UIs\SwordUI.h" />
+    <ClInclude Include="SKLib\TransitionMask.h" />
+    <ClInclude Include="SKLib\UserResources.h" />
+    <ClInclude Include="Scenes\StageScene.h" />
+    <ClInclude Include="Scenes\LoadScene.h" />
+    <ClInclude Include="Scenes\ResultScene.h" />
+    <ClInclude Include="Scenes\SelectScene.h" />
+    <ClInclude Include="SKLib\UserInterface.h" />
+    <ClInclude Include="SKLib\CollisionManager.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Scenes\TutorialScene.h" />
+    <ClInclude Include="Scenes\TitleScene.h" />
+    <ClInclude Include="SKLib\DebugFont.h" />
+    <ClInclude Include="SKLib\InputManager.h" />
+    <ClInclude Include="SKLib\SceneManager.h" />
+    <ClInclude Include="SKLib\BinaryFile.h" />
+    <ClInclude Include="SKLib\SRVManager.h" />
+    <ClInclude Include="SKLib\TaskManager.h" />
+    <ClInclude Include="SKLib\SoundManager.h" />
+    <ClInclude Include="StepTimer.h" />
+    <ClInclude Include="Task\Number.h" />
+    <ClInclude Include="Task\SpriteSheet.h" />
+    <ClInclude Include="SKLib\TitleCamera.h" />
+    <ClInclude Include="SKLib\TutorialManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GameObjects\Effects\BackGround.cpp" />
+    <ClCompile Include="GameObjects\Effects\ParticleUtility.cpp" />
+    <ClCompile Include="GameObjects\Effects\PortalParticle.cpp" />
+    <ClCompile Include="GameObjects\Effects\Shadow.cpp" />
+    <ClCompile Include="GameObjects\Effects\SwirlParticle.cpp" />
+    <ClCompile Include="GameObjects\Effects\SwitchParticle.cpp" />
+    <ClCompile Include="GameObjects\Gimmicks\Gate.cpp" />
+    <ClCompile Include="GameObjects\Gimmicks\GimmickBlock.cpp" />
+    <ClCompile Include="GameObjects\Gimmicks\Item.cpp" />
+    <ClCompile Include="GameObjects\Gimmicks\Platform.cpp" />
+    <ClCompile Include="GameObjects\Gimmicks\Portal.cpp" />
+    <ClCompile Include="GameObjects\Gimmicks\Switch.cpp" />
+    <ClCompile Include="GameObjects\Stage.cpp" />
+    <ClCompile Include="GameObjects\Stages\Enemy.cpp" />
+    <ClCompile Include="GameObjects\Stages\Goal.cpp" />
+    <ClCompile Include="GameObjects\Stages\Player.cpp" />
+    <ClCompile Include="GameObjects\Stages\StageObject.cpp" />
+    <ClCompile Include="GameObjects\UIs\HealthUI.cpp" />
+    <ClCompile Include="GameObjects\UIs\Menu.cpp" />
+    <ClCompile Include="GameObjects\UIs\ShieldUI.cpp" />
+    <ClCompile Include="GameObjects\UIs\StaminaUI.cpp" />
+    <ClCompile Include="SKLib\Camera.cpp" />
+    <ClCompile Include="SKLib\DebugDraw.cpp" />
+    <ClCompile Include="SKLib\DeviceResources.cpp" />
+    <ClCompile Include="SKLib\GameCamera.cpp" />
+    <ClCompile Include="SKLib\RenderTexture.cpp" />
+    <ClCompile Include="SKLib\ScreenManager.cpp" />
+    <ClCompile Include="GameObjects\UIs\SwordUI.cpp" />
+    <ClCompile Include="SKLib\TransitionMask.cpp" />
+    <ClCompile Include="Scenes\StageScene.cpp" />
+    <ClCompile Include="Scenes\LoadScene.cpp" />
+    <ClCompile Include="Scenes\ResultScene.cpp" />
+    <ClCompile Include="Scenes\SelectScene.cpp" />
+    <ClCompile Include="SKLib\UserInterface.cpp" />
+    <ClCompile Include="SKLib\CollisionManager.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Scenes\TutorialScene.cpp" />
+    <ClCompile Include="Scenes\TitleScene.cpp" />
+    <ClCompile Include="SKLib\DebugFont.cpp" />
+    <ClCompile Include="SKLib\InputManager.cpp" />
+    <ClCompile Include="SKLib\BinaryFile.cpp" />
+    <ClCompile Include="SKLib\SRVManager.cpp" />
+    <ClCompile Include="SKLib\TaskManager.cpp" />
+    <ClCompile Include="SKLib\SoundManager.cpp" />
+    <ClCompile Include="SKLib\TitleCamera.cpp" />
+    <ClCompile Include="SKLib\TutorialManager.cpp" />
+    <ClCompile Include="Task\Number.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="settings.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Resources\best_times.json" />
+    <None Include="Resources\last_times.json" />
+    <None Include="Resources\Stages\stage01.json" />
+    <None Include="Resources\Stages\stage02.json" />
+    <None Include="Resources\Stages\stage03.json" />
+    <None Include="Resources\Stages\test.json" />
+    <None Include="Resources\Stages\tutorial.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\directxtk_desktop_2019.2025.3.21.2\build\native\directxtk_desktop_2019.targets" Condition="Exists('packages\directxtk_desktop_2019.2025.3.21.2\build\native\directxtk_desktop_2019.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\directxtk_desktop_2019.2025.3.21.2\build\native\directxtk_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtk_desktop_2019.2025.3.21.2\build\native\directxtk_desktop_2019.targets'))" />
+  </Target>
+</Project>
