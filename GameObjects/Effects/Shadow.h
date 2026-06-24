@@ -10,6 +10,7 @@
 class Shadow
 {
 public:
+	// 関数 ------------------------------------------------------------
 	// コンストラクタ
 	Shadow();
 
@@ -25,9 +26,12 @@ public:
 		DirectX::SimpleMath::Vector3 position,
 		float radius = 1.5f
 	);
-
 private:
-
+	// 定数 -----------------------------------------------------------
+	static const float Z_FIGHTING_OFFSET; ///< 地面とのチラつき（Zファイティング）を防ぐための高さオフセット
+private:
+	// メンバ変数 -----------------------------------------------------
+	// シャドウテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shadowTexture;
 
 	// ベーシックエフェクト

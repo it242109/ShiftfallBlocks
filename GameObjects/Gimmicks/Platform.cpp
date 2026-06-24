@@ -6,6 +6,8 @@
 #include "pch.h"
 #include "Platform.h"
 
+// 定数の定義
+const float Platform::HALF_SCALE = 0.5f;	///< 半分のサイズにする
 
 /*
 * @brief コンストラクタ
@@ -55,15 +57,20 @@ void Platform::LoadPlatformData(const std::vector<DirectX::SimpleMath::Vector3>&
 */
 void Platform::Update(const std::vector<bool>& switchStates, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies)
 {
+	// 外部から受け取ったスイッチ状態を保存
 	m_switchStates = switchStates;
 
+	// 配置されているオブジェクトごとに処理
 	for (size_t i = 0; i < m_positions.size(); ++i)
 	{
+		// オブジェクトの位置とスケールを取得
 		const DirectX::SimpleMath::Vector3& pos = m_positions[i];
 		const DirectX::SimpleMath::Vector3& scale = m_scales[i];
 
-		DirectX::SimpleMath::Vector3 half = scale * 0.5f;
+		// AABB生成用の半サイズを計算
+		DirectX::SimpleMath::Vector3 half = scale * HALF_SCALE;
 
+		// スイッチがONの場合のみ有効な当たり判定を設定
 		if (i < switchStates.size() && switchStates[i])
 			m_collisions[i] = AABB(pos - half, pos + half);
 		else
@@ -101,17 +108,23 @@ void Platform::Render(const DirectX::SimpleMath::Matrix& view, const DirectX::Si
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	auto states = std::make_unique<DirectX::CommonStates>(m_deviceResources->GetD3DDevice());
 
+	// モデル全体に適用するY軸回転行列
 	DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(0.0f);
 
+	// 配置済みモデルの数だけ描画
 	for (size_t i = 0; i < m_positions.size(); i++)
 	{ 
 		if (i < m_switchStates.size() && !m_switchStates[i])
 			continue;
 
+		// スケール行列を生成
 		DirectX::SimpleMath::Matrix scale = DirectX::SimpleMath::Matrix::CreateScale(m_scales[i]);
+		// 平行移動行列を生成
 		DirectX::SimpleMath::Matrix trans= DirectX::SimpleMath::Matrix::CreateTranslation(m_positions[i]);
+		// ワールド行列を作成
 		DirectX::SimpleMath::Matrix world = scale * rot *trans;
 
+		// モデルの描画
 		m_model->Draw(context, *states, world, view, proj);
 	}
 }

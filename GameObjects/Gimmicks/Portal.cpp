@@ -7,6 +7,12 @@
 #include "Portal.h"
 #include "Item.h"
 
+// 定数の定義
+const float Portal::TIMER_END_THRESHOLD = 0.0f;		///< タイマーが終了したと判定する基準値
+const float Portal::INVALID_SET_INDEX = -1;			///< ポータルセットが指定されていない場合のインデックス値
+const float Portal::HALF_SCALE = 0.5f;				///< 半分のサイズにする
+const float Portal::TELEPORT_COOLDOWN_TIME = 2.0f;	///< テレポート発動後のクールダウン時間
+
 /*
 * @brief 初期化処理
 *
@@ -41,7 +47,7 @@ void Portal::Update(const AABB& playerCollision, float elapsedTime, const std::v
 	{
 		// テレポートのクールダウンタイムを減少させる
 		m_teleportTimer -= elapsedTime;
-		if (m_teleportTimer <= 0.0f)
+		if (m_teleportTimer <= TIMER_END_THRESHOLD)
 		{
 			// テレポート完了後の処理
 			m_isTeleporting = false;
@@ -59,9 +65,10 @@ void Portal::Update(const AABB& playerCollision, float elapsedTime, const std::v
 		int setIndex = m_portalSetIndices[i];
 
 		// ポータルセットが有効になっている場合
-		if (setIndex == -1 || (setIndex >= 0 && setIndex < portalStates.size() && portalStates[setIndex]))
+		if (setIndex == INVALID_SET_INDEX || (setIndex >= 0 && setIndex < portalStates.size() 
+			&& portalStates[setIndex]))
 		{
-			DirectX::SimpleMath::Vector3 half = pt.scale * 0.5f;
+			DirectX::SimpleMath::Vector3 half = pt.scale * HALF_SCALE;
 			m_collisions[i] = AABB(pt.position - half, pt.position + half);
 
 			const auto& portalCollision = m_collisions[i];
@@ -78,7 +85,7 @@ void Portal::Update(const AABB& playerCollision, float elapsedTime, const std::v
 					{
 						m_isTeleporting = true;
 						m_isTeleported = true;
-						m_teleportTimer = 2.0f;
+						m_teleportTimer = TELEPORT_COOLDOWN_TIME;
 
 						// ポータル通過時の処理
 						if (pt.onTeleport)

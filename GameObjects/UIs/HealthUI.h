@@ -16,7 +16,7 @@
 #include <CommonStates.h>
 #include <vector>
 
-#include "GameObjects/Stages/Player.h"
+#include "GameObjects/StageObjects/Player.h"
 
 // 前方宣言
 class Player;
@@ -32,25 +32,16 @@ public:
 		RECOVERY = 1 << 1,
 	};
 
-private:
-	Player* m_player;
-
-	// 定数
-	const static int HEALTH_X;
-	const static int HEALTH_Y;
-	const static int HEALTH_MAX;
-	const static float HEALTH_RANGE;
-
-	DX::DeviceResources* m_pDR;
-	std::vector <std::unique_ptr<UserInterface>> m_health;
-
-	// ウィンドウサイズ
-	int m_windowWidth, m_windowHeight;
-	
-	// 状態管理用のビットフラグ
-	byte m_state;
+public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- システム・グラフィックス  ---
+	// プレイヤーのセッター
+	void SetPlayer(Player* player);
+	// 最大値を取得
+	int GetHealthMax() const;
 
 public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ／デストラクタ
 	HealthUI();
 	~HealthUI();
@@ -68,14 +59,35 @@ public:
 		DirectX::SimpleMath::Vector2 scale,
 		ANCHOR anchor);
 
-	// プレイヤーのセッターを追加
-	void SetPlayer(Player* player);
-	// 最大値を取得
-	int GetHealthMax() const;
-
 	// 増やす処理
 	void Increase();
 	// 減らす処理
 	void Decrease();
+
+private:
+	// 定数 ------------------------------------------------------------------------
+	static const int HEALTH_UI_X;			///< Xの位置
+	static const int HEALTH_UI_Y;			///< Yの位置
+	static const float HEALTH_UI_SCALE_X;	///< Xの大きさ
+	static const float HEALTH_UI_SCALE_Y;	///< Yの大きさ
+	static const int HEALTH_UI_MAX;			///< 最大数
+	static const float HEALTH_UI_RANGE;		///< 表示間隔
+
+private:
+	// メンバ変数 ------------------------------------------------------------------
+	// プレイヤーへのポインタ
+	Player* m_player;
+
+	// デバイスリソース
+	DX::DeviceResources* m_pDR;
+
+	// ゲージ用のUIオブジェクトを保持するコンテナ
+	std::vector<std::unique_ptr<UserInterface>> m_health;
+
+	// ウィンドウサイズ
+	int m_windowWidth, m_windowHeight;
+	
+	// 状態管理用のビットフラグ
+	byte m_state;
 };
 

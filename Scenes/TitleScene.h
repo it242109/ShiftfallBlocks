@@ -12,12 +12,13 @@
 #include "SKLib/TitleCamera.h"
 #include "SKLib/UserResources.h"
 
-#include "GameObjects/Stages/Player.h"
+#include "GameObjects/StageObjects/Player.h"
 #include "GameObjects/UIs/Menu.h"
 
 class TitleScene : public SceneBase<UserResources>
 {
 public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ／デストラクタ
 	TitleScene();
 	~TitleScene();
@@ -34,9 +35,6 @@ public:
 	// 終了処理
 	void Finalize() override;
 
-	// メニューの設定
-	void SetupMenu();
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources() override;
 
@@ -47,6 +45,29 @@ public:
 	void OnDeviceLost() override;
 
 private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const DirectX::SimpleMath::Vector3 TITLE_PLAYER_POSITION;	///< タイトルシーンのプレイヤーの位置
+	static const DirectX::SimpleMath::Vector3 TITLE_PLAYER_SCALE;		///< タイトルシーンのプレイヤーの大きさ
+	static const DirectX::SimpleMath::Vector3 GIMMICKBLOCK_POSITION;	///< 仕掛けブロックの位置
+	static const DirectX::SimpleMath::Vector3 GIMMICKBLOCK_SCALE;		///< 仕掛けブロックの大きさ
+	static const DirectX::SimpleMath::Vector3 FLOOR_POSITION;			///< 床の位置
+	static const DirectX::SimpleMath::Vector3 FLOOR_SCALE;				///< 床の大きさ
+	static const float WALL_OFFSET_DIST;	///<　壁オブジェクトの中心からの距離
+	static const float WALL_THICKNESS;		///< 壁の厚み
+	static const float WALL_HEIGHT;			///< 壁の高さ
+	static const float WALL_LENGTH;			///< 壁の長さ
+
+	static const float MENU_DEFAULT_POSITION_X;	///<メニューのデフォルトの位置X
+	static const float MENU_DEFAULT_SCALE_X;	///< メニューのデフォルトの大きさX
+	static const float MENU_DEFAULT_SCALE_Y;	///< メニューのデフォルトの大きさY
+
+	static const float FIELD_OF_VIEW_DEGREES;	///< 視野角
+	static const float NEAR_PLANE_DISTANCE;		///< カメラの最前面のクリップ距離
+	static const float FAR_PLANE_DISTANCE;		///< カメラの最遠面のクリップ距離
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
+	// デバイスリソースのポインタ
 	std::unique_ptr<DX::DeviceResources>    m_deviceResources;
 
 	// スプライトバッチのポインタ

@@ -6,6 +6,15 @@
 #include "pch.h"
 #include "Goal.h"
 
+// 定数の定義
+const float Goal::BASE_SIZE_MULTIPLIER = 1.0f;	///< 判定のベースサイズに対する倍率
+const float Goal::HALF_SCALE = 0.5f;			///< 半分のサイズにする
+const float Goal::HEIGHT_MULTIPLIER = 1.5f;		///< ゴール判定の高さを縦長に拡張するための倍率
+
+const float Goal::FIELD_OF_VIEW_DEGREES = 45.0f;	///< 視野角
+const float Goal::NEAR_PLANE_DISTANCE = 0.1f;		///< カメラの最前面のクリップ距離
+const float Goal::FAR_PLANE_DISTANCE = 100.0f;		///< カメラの最遠面のクリップ距離
+
 
 /*
 * @brief 初期化処理
@@ -33,12 +42,12 @@ void Goal::Initialize()
 void Goal::Update(const AABB& playerCollision, Player* player)
 {
 	// 当たり判定のサイズ
-	DirectX::SimpleMath::Vector3 goalAABBHalfSize = (m_goalScale * 1.0f);
+	DirectX::SimpleMath::Vector3 goalAABBHalfSize = (m_goalScale * BASE_SIZE_MULTIPLIER);
 
 	// 当たり判定の調整
-	goalAABBHalfSize.x *= 0.5f;
-	goalAABBHalfSize.y *= 1.5f;
-	goalAABBHalfSize.z *= 0.5f;
+	goalAABBHalfSize.x *= HALF_SCALE;
+	goalAABBHalfSize.y *= HEIGHT_MULTIPLIER;
+	goalAABBHalfSize.z *= HALF_SCALE;
 
 	// コライダーの作成
 	m_goalCollision = AABB(m_goalPosition - goalAABBHalfSize, m_goalPosition + goalAABBHalfSize);
@@ -109,9 +118,9 @@ void Goal::CreateDeviceDependentResources()
 	// 射影行列の作成
 	RECT rect = m_deviceResources->GetOutputSize();
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
-		0.1f, 100.0f
+		NEAR_PLANE_DISTANCE, FAR_PLANE_DISTANCE
 	);
 }
 

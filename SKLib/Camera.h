@@ -10,10 +10,10 @@
 class Camera
 {
 private:
-	static const float EYE_SPEED_RATE;		// カメラの位置への距離の差分に対する割合
-	static const float TARGET_SPEED_RATE;	// 注視点への距離の差分に対する割合
+	static const float EYE_SPEED_RATE;		///< カメラの位置への距離の差分に対する割合
+	static const float TARGET_SPEED_RATE;	///< 注視点への距離の差分に対する割合
 
-private: // protected:
+private:
 	// 視点の位置
 	DirectX::SimpleMath::Vector3 m_eyePos;
 

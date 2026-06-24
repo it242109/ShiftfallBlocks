@@ -5,7 +5,9 @@
 //--------------------------------------------------------------------------------------
 #include "pch.h"
 #include "Switch.h"
-#include "Portal.h"
+
+// 定数の定義
+const float Switch::HALF_SCALE = 0.5f;				///< 半分のサイズにする
 
 /*
 * @brief コンストラクタ
@@ -62,7 +64,7 @@ void Switch::Update(const std::vector<std::shared_ptr<GimmickBlock>>& gimmickBlo
         const auto& sw = m_switches[i];
 
         // スイッチのAABBを作成
-        DirectX::SimpleMath::Vector3 half = sw.scale * 0.5f;
+        DirectX::SimpleMath::Vector3 half = sw.scale * HALF_SCALE;
         m_collisions[i] = AABB(sw.position - half, sw.position + half);
 
         bool isActivated = false;

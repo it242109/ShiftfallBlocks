@@ -6,11 +6,24 @@
 #pragma once
 
 #include "SKLib/CollisionManager.h"
-#include "GameObjects/Stages/Player.h"
-#include "GameObjects/Stages/Enemy.h"
+#include "GameObjects/StageObjects/Player.h"
+#include "GameObjects/StageObjects/Enemy.h"
 class Platform
 {
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- デバイスリソースの設定 ---
+	void SetDeviceResources(class DX::DeviceResources* deviceResources)
+	{
+		m_deviceResources = deviceResources;
+	}
+
+	// --- 位置・大きさ ---
+	const std::vector<DirectX::SimpleMath::Vector3>& GetPositions() const { return m_positions; }
+	const std::vector<DirectX::SimpleMath::Vector3>& GetScales() const { return m_scales; }
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ／デストラクタ
 	Platform();
 	~Platform();
@@ -34,17 +47,13 @@ public:
 	// コライダーの線
 	void ColliderLine();
 
-	// デバイスリソースの設定
-	void SetDeviceResources(class DX::DeviceResources* deviceResources)
-	{
-		m_deviceResources = deviceResources;
-	}
-
-	// 位置・大きさを取得
-	const std::vector<DirectX::SimpleMath::Vector3>& GetPositions() const { return m_positions; }
-	const std::vector<DirectX::SimpleMath::Vector3>& GetScales() const { return m_scales; }
+private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const float HALF_SCALE;					///< 半分のサイズにする
 
 private:
+	// メンバ変数 ---------------------------------------------------------------------------
+	// デバイスリソース／コモンステート
 	class DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
 

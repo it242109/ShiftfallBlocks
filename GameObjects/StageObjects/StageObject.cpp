@@ -8,6 +8,10 @@
 #include "Player.h"
 #include "Enemy.h"
 
+// 定数の定義
+const float StageObject::HALF_SCALE = 0.5f;			///< 半分のサイズにする
+
+
 /*
 * @brief コンストラクタ
 *
@@ -47,6 +51,14 @@ void StageObject::Initialize(ID3D11Device* device, const wchar_t* path)
 	m_model = DirectX::Model::CreateFromSDKMESH(device, path, *fx);
 }
 
+/*
+* @brief データの読み込み
+*
+* @param[in]  posirions　位置
+* @param[in]  scales　大きさ
+*
+* @return なし
+*/
 void StageObject::LoadData(const std::vector<DirectX::SimpleMath::Vector3>& positions, const std::vector<DirectX::SimpleMath::Vector3>& scales)
 {
 	m_positions = positions;
@@ -54,7 +66,7 @@ void StageObject::LoadData(const std::vector<DirectX::SimpleMath::Vector3>& posi
 	m_collisions.clear();
 	for (size_t i = 0; i < m_positions.size(); ++i) 
 	{
-		DirectX::SimpleMath::Vector3 half = m_scales[i] * 0.5f;
+		DirectX::SimpleMath::Vector3 half = m_scales[i] * HALF_SCALE;
 		m_collisions.push_back(AABB(m_positions[i] - half, m_positions[i] + half));
 	}
 }

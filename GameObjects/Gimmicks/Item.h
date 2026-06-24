@@ -11,7 +11,7 @@
 #include "SKLib/InputManager.h"
 #include "SKLib/SceneManager.h"
 
-#include "GameObjects/Stages/Player.h"
+#include "GameObjects/StageObjects/Player.h"
 
 // 列挙体の管理
 enum class ItemType
@@ -33,6 +33,23 @@ struct ItemData
 class Item
 {
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- アイテムデータ ---
+	// アイテムのリストを取得
+	const std::vector<ItemData>& GetItems() const { return m_items; }
+	// 特定インデックスのアイテムの位置を設定
+	void SetPosition(size_t index, const DirectX::SimpleMath::Vector3& position);
+	// 特定インデックスのアイテムのスケールを設定
+	void SetScale(size_t index, const DirectX::SimpleMath::Vector3& scale);
+
+	// --- システム・グラフィックス ---
+	// デバイスリソースの設定
+	void SetDeviceResources(DX::DeviceResources* deviceResources) { m_deviceResources = deviceResources; }
+	// 共通ステートの設定
+	void SetCommonStates(DirectX::CommonStates* states) { m_states = states; }
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// 初期化処理
 	void Initialize();
 
@@ -51,29 +68,23 @@ public:
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
 
-	//////////////////////////////ゲッター／セッター///////////////////////////
-
-	// デバイスリソースの設定
-	void SetDeviceResources(DX::DeviceResources* deviceResources) { m_deviceResources = deviceResources; }
-
-	// 共通ステートの設定
-	void SetCommonStates(DirectX::CommonStates* states) { m_states = states; }
-
-	// 位置を設定
-	void SetPosition(size_t index, const DirectX::SimpleMath::Vector3& position);
-
-	// スケールを設定
-	void SetScale(size_t index, const DirectX::SimpleMath::Vector3& scale);
-
-	// アイテムのリストを取得
-	const std::vector<ItemData>& GetItems() const { return m_items; }
-	
-	/////////////////////////////////////////////////////////////////////////
-
 	// コライダーの線
 	void ColliderLine();
 
 private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const DirectX::SimpleMath::Vector3 DEFAULT_SCALE;///< デフォルトの大きさ
+
+	static const int ITEM_COUNT_SWORD;						///< 剣の使用回数
+	static const int ITEM_COUNT_SHIELD;						///< 盾の使用回数
+
+	static const float FIELD_OF_VIEW_DEGREES;				///< 視野角
+	static const float NEAR_PLANE_DISTANCE;					///< カメラの最前面のクリップ距離
+	static const float FAR_PLANE_DISTANCE;					///< カメラの最遠面のクリップ距離
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
+	// デバイスリソース／コモンステート
 	DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
 

@@ -22,28 +22,50 @@
 
 #include "Resources/json.hpp"
 
+// JSONファイルを使えるようにする
 using json = nlohmann::json;
 
 class ResultScene : public SceneBase<UserResources>
 {
 public:
-	// 列挙体の定義
+	// 列挙体の定義 -------------------------------------------------------------------------
 	enum class ResultStage // 各ステージ
 	{
-		TUTORIAL,
-		FIRST,
-		SECOND,
-		THIRD,
-		NONE
+		TUTORIAL,	// チュートリアルシーン
+		FIRST,		// ステージ１
+		SECOND,		// ステージ２
+		THIRD,		// ステージ３
+		NONE		// デフォルト
 	};
 	enum class ResultType // ゲーム結果
 	{
-		CLEAR,
-		GAMEOVER,
-		NONE
+		CLEAR,		// クリア
+		GAMEOVER,	// ゲームオーバー
+		NONE		// デフォルト
 	};
 
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- リザルト・ステージ進行  ---
+	// グローバルなゲーム結果を設定
+	static void SetGlobalResult(ResultType result) { s_globalResult = result; }
+	// 現在のグローバルステージを設定
+	static void SetGlobalStage(ResultStage stage) { s_globalStage = stage; }
+	// 現在のグローバルステージを取得
+	static ResultStage GetGlobalStage() { return s_globalStage; }
+
+	// --- 現在のプレイ記録 ---
+	// 今回のクリアタイムを設定
+	static void SetGlobalClearTime(float time) { s_currentClearTime = time; }
+
+	// --- 保存された記録の取得 ) ---
+	// 前回のクリアタイムをJSONから取得
+	static float GetLastTimeFronJson(ResultStage stage);
+	// 指定ステージの自己ベストタイムをJSONから取得
+	static float GetBestTimeFromJson(ResultStage stage);
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	ResultScene();
 	~ResultScene();
@@ -60,20 +82,6 @@ public:
 	// 終了処理
 	void Finalize() override;
 
-	// 結果を設定
-	static void SetGlobalResult(ResultType result) { s_globalResult = result; }
-	static void SetGlobalStage(ResultStage stage) { s_globalStage = stage; }
-
-	// クリアタイムを設定
-	static void SetGlobalClearTime(float time) { s_currentClearTime = time; }
-
-	// ステージ情報を設定
-	static ResultStage GetGlobalStage() { return s_globalStage; }
-
-	// クリアタイムを取得
-	static float GetLastTimeFronJson(ResultStage stage);
-	static float GetBestTimeFromJson(ResultStage stage);
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources() override;
 
@@ -82,8 +90,8 @@ public:
 
 	// デバイスロストした時に呼び出される関数
 	void OnDeviceLost() override;
-
 private:
+	// 文字列に変換
 	static std::string StageEnumToString(ResultStage stage);
 
 	// 秒から分秒表記に変換する関数
@@ -99,6 +107,15 @@ private:
 	void UpdateBestTime() const;
 
 private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const int SECONDS_IN_HOUR;		///< １時間あたりの秒数
+	static const int SECONDS_IN_MIN;		///< １分あたりの秒数
+	static const int PAD_WIDTH;				///< 桁そろえの文字幅
+	static const int LOG_COMUMN_WIDTH;		///< 出力時の桁数指定（4ケタ）
+	static const float PARSE_ERROR_FALLBACK;///< 解析失敗時のフォールバック値
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// スプライトバッチのポインタ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 

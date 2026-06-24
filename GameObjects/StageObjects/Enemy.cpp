@@ -7,6 +7,24 @@
 #include "Enemy.h"
 #include "SKLib/ReadData.h"
 
+// 定数の定義
+const float Enemy::GRAVITY = -9.8f;				///< 重力
+const float Enemy::FALL_SPEED = -3.0f;			///< 落下速度
+const float Enemy::SEARCH_RANGE = 15.0f;		///< 索敵範囲のしきい値
+const float Enemy::NEAR_ZERO_THRESHOLD = 0.1f;	///< 最小距離のしきい値
+const float Enemy::MOVE_SPEED = 0.03f;			///< 移動速度
+
+const float Enemy::HALF_SCALE = 0.5f;			///< 半分のサイズにする
+
+const float Enemy::TOP_Y_OFFSET_THRESHOLD = 0.5f;	///< 判定対象とする床の高さの許容誤差
+const float Enemy::DEFAULT_SURFACE_Y = 0.0f;		///< 床が見つからなかった場合のデフォルトの高さ
+const float Enemy::Z_FIGHTING_OFFSET = 0.03f;		///< Zファイティング（チラつき）防止用の微小な浮かせ幅
+const float Enemy::SHADOW_SCALE_ATTENUATION = 0.05f;///< 高さによる影の減衰率
+const float Enemy::MIN_SHADOW_SCALE = 0.2f;			///< 影の最小スケール
+
+const float Enemy::FIELD_OF_VIEW_DEGREES = 45.0f;	///< 視野角
+const float Enemy::NEAR_PLANE_DISTANCE = 0.1f;		///< カメラの最前面のクリップ距離
+const float Enemy::FAR_PLANE_DISTANCE = 100.0f;		///< カメラの最遠面のクリップ距離
 /*
 * @brief コンストラクタ
 *
@@ -122,10 +140,12 @@ void Enemy::Update(float elapsedTime,const DirectX::SimpleMath::Vector3& enemyPo
 */
 void Enemy::UpdateState(const DirectX::SimpleMath::Vector3& enemyPos)
 {
+	// 各軸における距離を計算
 	float dx = abs(enemyPos.x - m_enemyPosition.x);
 	float dz = abs(enemyPos.z - m_enemyPosition.z);
 
-	bool nearEnemy = (dx <= 15.0f && dz <= 15.0f);
+	// ターゲットが索敵範囲内にいるかどうかを判定
+	bool nearEnemy = (dx <= SEARCH_RANGE && dz <= SEARCH_RANGE);
 
 	// ステートごとに状態遷移
 	switch (m_state)
@@ -162,11 +182,11 @@ void Enemy::UpdateChase(const DirectX::SimpleMath::Vector3& enemyPos)
 	toPlayer.y = 0.0f;
 
 	float distance = toPlayer.Length();
-	if (distance > 0.1f)
+	if (distance > NEAR_ZERO_THRESHOLD)
 	{
 		toPlayer.Normalize();
 		m_enemyForward = toPlayer;
-		m_enemyVelocity = 0.03f;
+		m_enemyVelocity = MOVE_SPEED;
 
 		// プレイヤーに向かって移動
 		m_enemyPosition += toPlayer * m_enemyVelocity;
@@ -296,9 +316,9 @@ void Enemy::CreateDeviceDependentResources()
 	// 射影行列の作成
 	RECT rect = m_deviceResources->GetOutputSize();
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
-		0.1f, 100.0f
+		NEAR_PLANE_DISTANCE, FAR_PLANE_DISTANCE
 	);
 }
 
@@ -324,9 +344,10 @@ void Enemy::ResetFloorHit()
 void Enemy::RenderShadow()
 {
 	auto context = m_deviceResources->GetD3DDeviceContext();
+	const auto defaultLightDir = DirectX::SimpleMath::Vector3(0.2f, 1.0f, 0.2f);
 
-	// ライトの方向（斜め上から - 影が見えやすい角度）
-	DirectX::SimpleMath::Vector3 lightDir = DirectX::SimpleMath::Vector3(0.2f, 1.0f, 0.2f);
+	// ライトの方向を正規化
+	DirectX::SimpleMath::Vector3 lightDir = defaultLightDir;
 	lightDir.Normalize();
 
 	// 立っている床を検出
@@ -336,20 +357,22 @@ void Enemy::RenderShadow()
 	float closestSurfaceY = -FLT_MAX;
 	bool foundSurface = false;
 
-	// 床と足場の両方をチェック
+	// 床と足場の両方をチェックするラムダ式
 	auto checkSurface = [&](const std::vector<DirectX::SimpleMath::Vector3>& posList,
 		const std::vector<DirectX::SimpleMath::Vector3>& scaleList)
 		{
 			for (size_t i = 0; i < posList.size(); i++)
 			{
-				float halfWidth = scaleList[i].x * 0.5f;
-				float halfDepth = scaleList[i].z * 0.5f;
+				float halfWidth = scaleList[i].x * HALF_SCALE;
+				float halfDepth = scaleList[i].z * HALF_SCALE;
 
+				// 敵がオブジェクトのXZ範囲内（真上）にいるか判定
 				if (enemyX >= posList[i].x - halfWidth && enemyX <= posList[i].x + halfWidth &&
 					enemyZ >= posList[i].z - halfDepth && enemyZ <= posList[i].z + halfDepth)
 				{
 					float topY = posList[i].y + (scaleList[i].y * 0.5f);
-					if (topY <= enemyY + 0.5f && topY > closestSurfaceY)
+					// 足元より少し上までの高さにあり、かつ現在の一番高い床よりも高い場合
+					if (topY <= enemyY + TOP_Y_OFFSET_THRESHOLD && topY > closestSurfaceY)
 					{
 						closestSurfaceY = topY;
 						foundSurface = true;
@@ -357,34 +380,36 @@ void Enemy::RenderShadow()
 				}
 			}
 		};
+
 	// 静的な床の判定
 	checkSurface(m_floorPositions, m_floorScales);
-	// 動的な足場の判定を追加！
+	// 動的な足場の判定を追加
 	checkSurface(m_platformPositions, m_platformScales);
 
 	// 見つからなかったらデフォルト値に設定
 	if (!foundSurface)
 	{
-		closestSurfaceY = 0.0f;
+		closestSurfaceY = DEFAULT_SURFACE_Y;
 	}
 
 	// Zファイティング防止のため少し上げる
-	closestSurfaceY += 0.03f;
+	closestSurfaceY += Z_FIGHTING_OFFSET;
 
 	// シャドウマトリクスの作成
 	DirectX::SimpleMath::Plane groundPlane = DirectX::SimpleMath::Plane(0.0f, 1.0f, 0.0f, -closestSurfaceY);
-
 	DirectX::SimpleMath::Matrix shadowMatrix = DirectX::SimpleMath::Matrix::CreateShadow(lightDir, groundPlane);
+
 	// 影の描画設定
 	if (foundSurface)
 	{
-		// 影のスケーリングを計算（ジャンプ時に影を小さくする）
+		// 影のスケーリングを計算
 		float heightDiff = m_enemyPosition.y - closestSurfaceY;
-		float scaleFactor = 1.0f / (1.0f + heightDiff * 0.05f);
-		scaleFactor = std::max(0.2f, scaleFactor); // 最小サイズを設定
+		float scaleFactor = 1.0f / (1.0f + heightDiff * SHADOW_SCALE_ATTENUATION);
+		scaleFactor = std::max(MIN_SHADOW_SCALE, scaleFactor); // 最小サイズを制限
 
-		// 影のスケール
+		// 影のスケール行列
 		DirectX::SimpleMath::Matrix shadowScale = DirectX::SimpleMath::Matrix::CreateScale(scaleFactor);
+
 		// 回転計算
 		float enemyRotationY = 0.0f;
 		if (m_enemyForward.LengthSquared() > 0.0f)

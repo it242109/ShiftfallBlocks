@@ -36,7 +36,7 @@ void TutorialManager::Update() const
 /*
 * @brief セッター
 *
-* @param[in] なし
+* @param[in] state チュートリアルの状態
 *
 * @return なし
 */

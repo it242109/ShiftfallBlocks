@@ -21,10 +21,38 @@ public:
 		DirectX::SimpleMath::Vector4	Diffuse;
 		DirectX::SimpleMath::Vector4	time;
 	};
+public:
+	// 関数 ------------------------------------------------------------
+	// インプットレイアウト
+	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;
+
+	// コンストラクタ／デストラクタ
+	BackGround();
+	~BackGround();
+
+	// テクスチャリソース読み込み関数
+	void LoadTexture(const wchar_t* path);
+
+	// 生成関数
+	void Create(DX::DeviceResources* pDR);
+
+	// 描画処理
+	void Render();
 private:
+	// シェーダー作成部分だけ分離した関数
+	void CreateShader();
+
+private:
+	// 定数 ------------------------------------------------------------
+	static const float TARGET_FRAME_RATE;	///< ターゲットとするフレームレート（144FPS）
+	static const float ONE_SECOND;			///< 1秒の時間基準値
+
+private:
+	// メンバ変数 -----------------------------------------------------
 	// デバイスリソースへのポインタ
 	DX::DeviceResources* m_pDR;
 
+	// バッファ
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	m_CBuffer;
 
 	DX::StepTimer                           m_timer;
@@ -53,26 +81,7 @@ private:
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
 
+	// １フレーム当たりのタイム
 	float m_time;
-
-public:
-	//	関数
-	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;
-
-	// コンストラクタ／デストラクタ
-	BackGround();
-	~BackGround();
-
-	// テクスチャリソース読み込み関数
-	void LoadTexture(const wchar_t* path);
-
-	// 生成関数
-	void Create(DX::DeviceResources* pDR);
-
-	// 描画処理
-	void Render();
-private:
-	// シェーダー作成部分だけ分離した関数
-	void CreateShader();
 };
 

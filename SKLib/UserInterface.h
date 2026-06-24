@@ -45,6 +45,7 @@ public:
 private:
 	DX::DeviceResources* m_pDR;
 
+	// バッファ
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	m_CBuffer;
 
 	DX::StepTimer                           m_timer;

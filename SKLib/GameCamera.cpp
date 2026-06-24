@@ -1,7 +1,7 @@
-//--------------------------------------------------------------------------------------
+ï»¿//--------------------------------------------------------------------------------------
 // File: GameCamera.cpp
 //
-// ƒQ[ƒ€ƒJƒƒ‰ƒNƒ‰ƒX
+// ã‚²ãƒ¼ãƒ ã‚«ãƒ¡ãƒ©ï¼ã‚«ãƒ¡ãƒ©è¡çªæä¾›ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ã‚¯ãƒ©ã‚¹ã®å®šç¾©
 //--------------------------------------------------------------------------------------
 
 #include "pch.h"
@@ -11,12 +11,12 @@
 #include "InputManager.h"
 
 /*
-* @brief ƒRƒ“ƒXƒgƒ‰ƒNƒ^
+* @brief ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 * 
-* @param windowWidth ƒEƒCƒ“ƒhƒEƒTƒCƒYi•j
-* @param windowHeight ƒEƒCƒ“ƒhƒEƒTƒCƒYi‚‚³j
+* @param windowWidth ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºï¼ˆå¹…ï¼‰
+* @param windowHeight ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºï¼ˆé«˜ã•ï¼‰
 * 
-* @return ‚È‚µ
+* @return ãªã—
 */
 GameCamera::GameCamera(int windowWidth, int windowHeight)
 	:m_cameraDistance(6.0f),
@@ -31,81 +31,85 @@ GameCamera::GameCamera(int windowWidth, int windowHeight)
 	m_screenH(windowHeight),
 	m_cameraHorizontalAngle(0.0f),
 	m_lastWheelValue(0)
+	//m_isGimmickView(false)
 {
 	SetWindowSize(windowWidth, windowHeight);
 
-	// ƒ}ƒEƒX‚ÌƒzƒC[ƒ‹’l‚ğƒŠƒZƒbƒg
+	// ãƒã‚¦ã‚¹ã®ãƒ›ã‚¤ãƒ¼ãƒ«å€¤ã‚’ãƒªã‚»ãƒƒãƒˆ
 	DirectX::Mouse::Get().ResetScrollWheelValue();
 }
 
 /*
-* @brief XV
+* @brief æ›´æ–°
 *
-* @param playerPos			ƒvƒŒƒCƒ„[‚ÌˆÊ’u
-* @param collisionProvider	Õ“Ë”»’èƒvƒƒoƒCƒ_
+* @param playerPos			ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ä½ç½®
+* @param collisionProvider	è¡çªåˆ¤å®šãƒ—ãƒ­ãƒã‚¤ãƒ€
 *
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCollisionProvider* collisionProvider)
 {
+	// ãƒã‚¦ã‚¹ã®çŠ¶æ…‹ã‚’å–å¾—ï¼ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼è¿½å¾“ã®å‡¦ç†
 	auto& mouse = DirectX::Mouse::Get();
 	auto state = mouse.GetState();
+
 	m_followMode = true;
 
-	// ƒ}ƒEƒX“ü—ÍE‰ñ“]ŒvZ
+	// ãƒã‚¦ã‚¹å…¥åŠ›ãƒ»å›è»¢è¨ˆç®—
 	HWND hWnd = GetActiveWindow();
 	if (hWnd && GetForegroundWindow() == hWnd && state.positionMode != DirectX::Mouse::MODE_RELATIVE)
 	{
 		float centerX = m_screenW / 2.0f;
 		float centerY = m_screenH / 2.0f;
 
-		// ‰ñ“]Šp“x‚ÌXV
+		// å›è»¢è§’åº¦ã®æ›´æ–°
 		m_yAngle += ((float)state.x - centerX) * MOUSE_SENSITIVITY;
 		m_xAngle += ((float)state.y - centerY) * MOUSE_SENSITIVITY;
 
-		// c‰ñ“]§ŒÀ
-		m_xAngle = std::max(-DirectX::XM_PIDIV2 * 0.05f, std::min(DirectX::XM_PIDIV2 * 0.05f, m_xAngle));
+		// ç¸¦å›è»¢åˆ¶é™
+		m_xAngle = std::max(-DirectX::XM_PIDIV2 * 0.01f, std::min(DirectX::XM_PIDIV2 * 0.01f, m_xAngle));
 
-		// Šp“x³‹K‰»
+		// è§’åº¦æ­£è¦åŒ–
 		m_yAngle = fmodf(m_yAngle, DirectX::XM_2PI);
 		if (m_yAngle < 0.0f) m_yAngle += DirectX::XM_2PI;
 
-		// ƒ}ƒEƒX’†‰›ŒÅ’è
+		// ãƒã‚¦ã‚¹ä¸­å¤®å›ºå®š
 		POINT pt = { (long)centerX, (long)centerY };
 		ClientToScreen(hWnd, &pt);
 		SetCursorPos(pt.x, pt.y);
 		while (ShowCursor(FALSE) >= 0);
 	}
 
-	// ƒ}ƒEƒXƒzƒC[ƒ‹‚ÅUŒ‚”ÍˆÍ‚ğ•ÏX‚·‚é
+	// ãƒã‚¦ã‚¹ãƒ›ã‚¤ãƒ¼ãƒ«ã§æ”»æ’ƒç¯„å›²ã‚’å¤‰æ›´ã™ã‚‹
 	int currentWheel = state.scrollWheelValue;
 	int wheelDelta = currentWheel - m_lastWheelValue;
 	m_lastWheelValue = currentWheel;
-	if (wheelDelta != 0) {
+	if (wheelDelta != 0) 
+	{
 		m_scrollData += (float)wheelDelta * 0.1f;
 		m_scrollData = std::max(1.0f, std::min(20.0f, m_scrollData));
 	}
 
-	// À•WŒvZ
+	// åº§æ¨™è¨ˆç®—
 	DirectX::SimpleMath::Vector3 up = { 0, 1, 0 };
-	// ƒvƒŒƒCƒ„[‚©‚çƒJƒƒ‰‚Ü‚Å‚Ì‹——£‚ğŒÅ’è
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ã‚«ãƒ¡ãƒ©ã¾ã§ã®è·é›¢ã‚’å›ºå®š
 	const float fixedCameraDist = 5.0f;
 
 	if (m_followMode)
 	{
-		// ƒvƒŒƒCƒ„[‚©‚ç‚Ì‹——£‚Ìİ’è
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ã®è·é›¢ã®è¨­å®š
 		const float cameraDistance = 5.0f;
-		// ƒvƒŒƒCƒ„[‚©‚ç‚Ì‚‚³‚Ìİ’è
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ã®é«˜ã•ã®è¨­å®š
 		const float cameraHeight = 2.0;
 
 		m_target = playerPos + DirectX::SimpleMath::Vector3(0, 1.2f, 0);
-		// ƒŒƒC‚ÌŠJn“_
+		// ãƒ¬ã‚¤ã®é–‹å§‹ç‚¹
 		DirectX::SimpleMath::Vector3 rayOrigin = playerPos + DirectX::SimpleMath::Vector3(0, 1.5f, 0);
 
-		// ƒxƒNƒgƒ‹‚Ìì¬
+		// ãƒ™ã‚¯ãƒˆãƒ«ã®ä½œæˆ
 		DirectX::SimpleMath::Vector3 baseOffset(0, cameraHeight, cameraDistance);
 
-		// ‰ñ“]‚ğ“K—p
+		// å›è»¢ã‚’é©ç”¨
 		DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(m_yAngle) * DirectX::SimpleMath::Matrix::CreateRotationX(m_xAngle);
 		DirectX::SimpleMath::Vector3 rotatedOffset = DirectX::SimpleMath::Vector3::Transform(baseOffset, rot);
 		
@@ -113,7 +117,7 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 		float maxDist = rayDir.Length();
 		rayDir.Normalize();
 
-		// Õ“Ë”»’è
+		// è¡çªåˆ¤å®š
 		float hitDist = maxDist;
 		if (collisionProvider)
 		{
@@ -135,41 +139,41 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 }
 
 /*
-* @brief s—ñ‚Ì¶¬
+* @brief è¡Œåˆ—ã®ç”Ÿæˆ
 * 
-* @param x ƒ}ƒEƒX‚ÌXÀ•W
-* @param y ƒ}ƒEƒX‚ÌYÀ•W
+* @param x ãƒã‚¦ã‚¹ã®Xåº§æ¨™
+* @param y ãƒã‚¦ã‚¹ã®Yåº§æ¨™
 *
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::Motion(int x, int y)
 {
-	// ƒ}ƒEƒXƒ|ƒCƒ“ƒ^‚ÌˆÊ’u‚Ìƒhƒ‰ƒbƒOŠJnˆÊ’u‚©‚ç‚Ì•ÏˆÊi‘Š‘Î’lj
+	// ãƒã‚¦ã‚¹ãƒã‚¤ãƒ³ã‚¿ã®ä½ç½®ã®ãƒ‰ãƒ©ãƒƒã‚°é–‹å§‹ä½ç½®ã‹ã‚‰ã®å¤‰ä½ï¼ˆç›¸å¯¾å€¤ï¼‰
 	float dx = (x - m_x) * m_sx;
 	float dy = (y - m_y) * m_sy;
 
 	if (dx != 0.0f || dy != 0.0f)
 	{
-		// X²‚Ì‰ñ“]
+		// Xè»¸ã®å›è»¢
 		float xAngle = dy * DirectX::XM_PI;
-		// Y²‚Ì‰ñ“]
+		// Yè»¸ã®å›è»¢
 		float yAngle = dx * DirectX::XM_PI;
 
 		m_xTmp = m_xAngle + xAngle;
 		m_yTmp = m_yAngle + yAngle;
 
-		// c‰ñ“]iX²‰ñ“]j‚Ì‚İ§ŒÀ‚ğ‚©‚¯‚é
+		// ç¸¦å›è»¢ï¼ˆXè»¸å›è»¢ï¼‰ã®ã¿åˆ¶é™ã‚’ã‹ã‘ã‚‹
 		m_xTmp = std::max(-DirectX::XM_PIDIV2 * 0.9f, std::min(DirectX::XM_PIDIV2 * 0.9f, m_xTmp));
 
 	}
 }
 
 /*
-* @brief ƒJƒƒ‰‚Ìƒrƒ…[s—ñ‚Ìæ“¾ŠÖ”
+* @brief ã‚«ãƒ¡ãƒ©ã®ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—ã®å–å¾—é–¢æ•°
 * 
-* @param ‚È‚µ
+* @param ãªã—
 * 
-* @return ƒrƒ…[s—ñ
+* @return ãƒ“ãƒ¥ãƒ¼è¡Œåˆ—
 */
 DirectX::SimpleMath::Matrix GameCamera::GetCameraMatrix() const
 {
@@ -177,11 +181,11 @@ DirectX::SimpleMath::Matrix GameCamera::GetCameraMatrix() const
 }
 
 /*
-* @brief ƒJƒƒ‰‚ÌˆÊ’u‚Ìæ“¾ŠÖ”
+* @brief ã‚«ãƒ¡ãƒ©ã®ä½ç½®ã®å–å¾—é–¢æ•°
 * 
-* @param ‚È‚µ
+* @param ãªã—
 * 
-* @return ‹“_‚ÌˆÊ’u
+* @return è¦–ç‚¹ã®ä½ç½®
 */
 DirectX::SimpleMath::Vector3 GameCamera::GetEyePosition() const
 {
@@ -189,11 +193,11 @@ DirectX::SimpleMath::Vector3 GameCamera::GetEyePosition() const
 }
 
 /*
-* @brief ƒJƒƒ‰‚Ì’‹“_‚Ìæ“¾ŠÖ”
+* @brief ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ã®å–å¾—é–¢æ•°
 * 
-* @param ‚È‚µ
+* @param ãªã—
 * 
-* @return ’‹“_‚ÌˆÊ’u
+* @return æ³¨è¦–ç‚¹ã®ä½ç½®
 */
 DirectX::SimpleMath::Vector3 GameCamera::GetTargetPosition() const
 {
@@ -201,11 +205,11 @@ DirectX::SimpleMath::Vector3 GameCamera::GetTargetPosition() const
 }
 
 /*
-* @brief ’Ç]ƒJƒƒ‰‚Ì’‹“_‚Ìæ“¾ŠÖ”
+* @brief è¿½å¾“ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ã®å–å¾—é–¢æ•°
 * 
-* @param ‚È‚µ
+* @param ãªã—
 *
-* @return ’‹“_‚ÌˆÊ’u
+* @return æ³¨è¦–ç‚¹ã®ä½ç½®
 */
 DirectX::SimpleMath::Vector3 GameCamera::GetFollowTargetPosition() const
 {
@@ -213,27 +217,27 @@ DirectX::SimpleMath::Vector3 GameCamera::GetFollowTargetPosition() const
 }
 
 /*
-* @brief ‰æ–ÊƒTƒCƒY‚Ìİ’èŠÖ”
+* @brief ç”»é¢ã‚µã‚¤ã‚ºã®è¨­å®šé–¢æ•°
 * 
-* @param windowWidth ƒEƒCƒ“ƒhƒEƒTƒCƒYi•j
-* @param windowHeight ƒEƒCƒ“ƒhƒEƒTƒCƒYi‚‚³j
+* @param windowWidth ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºï¼ˆå¹…ï¼‰
+* @param windowHeight ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºï¼ˆé«˜ã•ï¼‰
 * 
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::SetWindowSize(int windowWidth, int windowHeight)
 {
-	// ‰æ–ÊƒTƒCƒY‚É‘Î‚·‚é‘Š‘Î“I‚ÈƒXƒP[ƒ‹‚É’²®
+	// ç”»é¢ã‚µã‚¤ã‚ºã«å¯¾ã™ã‚‹ç›¸å¯¾çš„ãªã‚¹ã‚±ãƒ¼ãƒ«ã«èª¿æ•´
 	m_sx = 1.0f / float(windowWidth);
 	m_sy = 1.0f / float(windowHeight);
 }
 
 /*
-* @brief ‰æ–ÊƒTƒCƒY‚Ìæ“¾ŠÖ”
+* @brief ç”»é¢ã‚µã‚¤ã‚ºã®å–å¾—é–¢æ•°
 * 
-* @param windowWidth ƒEƒCƒ“ƒhƒEƒTƒCƒYi•j‚Ö‚ÌQÆ
-* @param windowHeight ƒEƒCƒ“ƒhƒEƒTƒCƒYi‚‚³j‚Ö‚ÌQÆ
+* @param windowWidth ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºï¼ˆå¹…ï¼‰ã¸ã®å‚ç…§
+* @param windowHeight ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºï¼ˆé«˜ã•ï¼‰ã¸ã®å‚ç…§
 * 
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::GetWindowSize(int& windowWidth, int& windowHeight) const
 {
@@ -242,12 +246,12 @@ void GameCamera::GetWindowSize(int& windowWidth, int& windowHeight) const
 }
 
 /*
-* @brief ƒJƒƒ‰‚ÌŠp“x‚ğİ’è‚·‚éŠÖ”
+* @brief ã‚«ãƒ¡ãƒ©ã®è§’åº¦ã‚’è¨­å®šã™ã‚‹é–¢æ•°
 * 
-* @param xAngle X²‚Ì‰ñ“]Šp“xic‰ñ“]j
-* @param yAngle Y²‚Ì‰ñ“]Šp“xi‰¡‰ñ“]j
+* @param xAngle Xè»¸ã®å›è»¢è§’åº¦ï¼ˆç¸¦å›è»¢ï¼‰
+* @param yAngle Yè»¸ã®å›è»¢è§’åº¦ï¼ˆæ¨ªå›è»¢ï¼‰
 * 
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::SetAngle(float xAngle, float yAngle)
 {
@@ -258,11 +262,11 @@ void GameCamera::SetAngle(float xAngle, float yAngle)
 }
 
 /*
-* @brief ’Ç]‚ÌƒJƒƒ‰‚Ì‹——£‚ğİ’è‚·‚éŠÖ”
+* @brief è¿½å¾“æ™‚ã®ã‚«ãƒ¡ãƒ©ã®è·é›¢ã‚’è¨­å®šã™ã‚‹é–¢æ•°
 *
-* @param distance ƒJƒƒ‰‚Æƒ^[ƒQƒbƒg‚Ì‹——£
+* @param distance ã‚«ãƒ¡ãƒ©ã¨ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®è·é›¢
 *
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::SetDistance(float distance)
 {
@@ -270,12 +274,12 @@ void GameCamera::SetDistance(float distance)
 }
 
 /*
-* @brief ƒJƒƒ‰‚Ì’Ç]‚ğİ’è‚·‚éŠÖ”
+* @brief ã‚«ãƒ¡ãƒ©ã®è¿½å¾“ã‚’è¨­å®šã™ã‚‹é–¢æ•°
 *
-* @param eye ’Ç]ƒJƒƒ‰‚Ì‹“_ˆÊ’u
-* @param target ’Ç]ƒJƒƒ‰‚Ì’‹“_ˆÊ’u
+* @param eye è¿½å¾“ã‚«ãƒ¡ãƒ©ã®è¦–ç‚¹ä½ç½®
+* @param target è¿½å¾“ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ä½ç½®
 *
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::SetFollowTarget(const DirectX::SimpleMath::Vector3& eye, const DirectX::SimpleMath::Vector3& target)
 {
@@ -284,11 +288,11 @@ void GameCamera::SetFollowTarget(const DirectX::SimpleMath::Vector3& eye, const 
 }
 
 /*
-* @brief ’Ç]^ƒtƒŠ[ƒ‚[ƒh‚ÌØ‘ÖŠÖ”
+* @brief è¿½å¾“ï¼ãƒ•ãƒªãƒ¼ãƒ¢ãƒ¼ãƒ‰ã®åˆ‡æ›¿é–¢æ•°
 *
-* @param enable true‚È‚ç’Ç]ƒ‚[ƒhAfalse‚È‚çƒtƒŠ[ƒ‚[ƒh
+* @param enable trueãªã‚‰è¿½å¾“ãƒ¢ãƒ¼ãƒ‰ã€falseãªã‚‰ãƒ•ãƒªãƒ¼ãƒ¢ãƒ¼ãƒ‰
 *
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::SetFollowMode(bool enable)
 {
@@ -296,11 +300,11 @@ void GameCamera::SetFollowMode(bool enable)
 }
 
 /*
-* @brief ƒtƒŠ[ƒ‚[ƒh‚ÌƒJƒƒ‰‚Ì‹——£‚ğİ’è‚·‚éŠÖ”
+* @brief ãƒ•ãƒªãƒ¼ãƒ¢ãƒ¼ãƒ‰æ™‚ã®ã‚«ãƒ¡ãƒ©ã®è·é›¢ã‚’è¨­å®šã™ã‚‹é–¢æ•°
 *
-* @param target ƒJƒƒ‰‚Ì’‹“_ˆÊ’u
+* @param target ã‚«ãƒ¡ãƒ©ã®æ³¨è¦–ç‚¹ä½ç½®
 *
-* @return ‚È‚µ
+* @return ãªã—
 */
 void GameCamera::SetTargetPosition(const DirectX::SimpleMath::Vector3& target)
 {

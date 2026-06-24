@@ -20,6 +20,18 @@
 #include <random>
 #include <DirectXMath.h>
 
+// 定数の定義
+const float SwitchParticle::EMITTER_RANGE_SCALE = 0.4f;			///< エミッタ―の範囲をどれくらいにするか
+const int SwitchParticle::PARTICLE_COUNT = 2;					///< パーティクルの数
+const float SwitchParticle::MIN_SPARN_RADIUS = 0.8f;			///< パーティクルの最小半径
+const float SwitchParticle::MAX_SPARN_RADIUS = 1.0f;			///< パーティクルの最大半径
+const float SwitchParticle::VELOCITY_HORIZONTAL_WEIGHT = 0.5f;	///< 横方向の速度の勢い
+const float SwitchParticle::VELOCITY_UPWARD_BASE = 1.0f;		///< 上方向の基本速度
+const float SwitchParticle::VELOCITY_SPEED_MIN = 0.5f;			///< 最小初速倍率
+const float SwitchParticle::VELOCITY_SPEED_MAX = 1.5f;			///< 最大初速倍率
+const float SwitchParticle::PARTICLE_LIFETIME = 1.0f;			///< 生存時間（秒）
+const float SwitchParticle::PARTICLE_START_SCALE = 0.5f;		///< 開始時のスケール
+
 /*
 * @brief　インプットレイアウト
 *
@@ -154,7 +166,7 @@ DirectX::SimpleMath::Color SwitchParticle::GetColorFromType(SwitchTargetType typ
 /*
 * @brief　更新処理
 *
-* @param[in]  timer Game等からStepTimerを受け取る
+* @param[in] elapsedTime 前フレームからの経過時間
 * 
 * @return     なし
 */
@@ -175,10 +187,10 @@ void SwitchParticle::Update(float elapsedTime)
 			DirectX::SimpleMath::Color baseColor = GetColorFromType(emitter.type);
 
 			// 発生範囲の設定
-			float rangeX = emitter.scale.x * 0.4f;
-			float rangeZ = emitter.scale.z * 0.4f;
+			float rangeX = emitter.scale.x * EMITTER_RANGE_SCALE;
+			float rangeZ = emitter.scale.z * EMITTER_RANGE_SCALE;
 
-			const int particleCount = 2; // 一度に出す数
+			const int particleCount = PARTICLE_COUNT;
 
 			for (int i = 0; i < particleCount; ++i)
 			{
@@ -189,7 +201,7 @@ void SwitchParticle::Update(float elapsedTime)
 				float offsetX = radius * rangeX * cosf(angle);
 				float offsetZ = radius * rangeZ * sinf(angle);
 
-				float spawnY = emitter.position.y + (emitter.scale.y * 0.5f);
+				float spawnY = emitter.position.y + (emitter.scale.y * VELOCITY_HORIZONTAL_WEIGHT);
 
 				DirectX::SimpleMath::Vector3 position(
 					emitter.position.x + offsetX,
@@ -198,19 +210,20 @@ void SwitchParticle::Update(float elapsedTime)
 				);
 
 				// 上方向へ昇っていく動き
-				DirectX::SimpleMath::Vector3 velocity(offsetX * 0.5f, 1.0f, offsetZ * 0.5f);
+				DirectX::SimpleMath::Vector3 velocity(offsetX * VELOCITY_HORIZONTAL_WEIGHT,
+					VELOCITY_UPWARD_BASE, offsetZ * VELOCITY_HORIZONTAL_WEIGHT);
 				velocity.Normalize();
-				velocity *= RandomFloat(0.5f, 1.5f); // 速度のゆらぎ
+				velocity *= RandomFloat(VELOCITY_SPEED_MIN, VELOCITY_SPEED_MAX); // 速度のゆらぎ
 
 				// パーティクル生成
 				ParticleUtility pU(
-					1.0f,                                       // 生存時間
-					position,                                   // 位置
-					velocity,                                   // 速度
-					DirectX::SimpleMath::Vector3::Zero,         // 加速度
-					DirectX::SimpleMath::Vector3::One * 0.5f,   // 初期スケール
-					DirectX::SimpleMath::Vector3::Zero,         // 最終スケール
-					baseColor,                                  // 開始色
+					PARTICLE_LIFETIME,											// 生存時間
+					position,													// 位置
+					velocity,													// 速度
+					DirectX::SimpleMath::Vector3::Zero,							// 加速度
+					DirectX::SimpleMath::Vector3::One * PARTICLE_START_SCALE,   // 初期スケール
+					DirectX::SimpleMath::Vector3::Zero,							// 最終スケール
+					baseColor,													// 開始色
 					DirectX::SimpleMath::Color(baseColor.x, baseColor.y, baseColor.z, 0.0f) // 終了色（透明へ）
 				);
 				m_particleUtility.push_back(pU);
@@ -238,9 +251,9 @@ void SwitchParticle::CreateShader()
 	ID3D11Device1* device = m_pDR->GetD3DDevice();
 
 	//	コンパイルされたシェーダファイルを読み込み
-	std::unique_ptr<BinaryFile> VSData = BinaryFile::LoadFile(L"Resources/Shaders/SwitchParticleVS.cso");
-	std::unique_ptr<BinaryFile> PSData = BinaryFile::LoadFile(L"Resources/Shaders/SwitchParticlePS.cso");
-	std::unique_ptr<BinaryFile> GSData = BinaryFile::LoadFile(L"Resources/Shaders/SwitchParticleGS.cso");
+	std::unique_ptr<BinaryFile> VSData = BinaryFile::LoadFile(L"Resources/Shaders/ObjectParticleVS.cso");
+	std::unique_ptr<BinaryFile> PSData = BinaryFile::LoadFile(L"Resources/Shaders/ObjectParticlePS.cso");
+	std::unique_ptr<BinaryFile> GSData = BinaryFile::LoadFile(L"Resources/Shaders/ObjectParticleGS.cso");
 
 	//	インプットレイアウトの作成
 	device->CreateInputLayout(&INPUT_LAYOUT[0],

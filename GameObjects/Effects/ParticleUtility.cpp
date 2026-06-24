@@ -15,6 +15,9 @@
 #include <CommonStates.h>
 #include <vector>
 
+// 定数の定義
+const float ParticleUtility::FULL_PROGRESS = 1.0f; ///< // 進捗率の最大値
+
 /*
 * @brief コンストラクタ
 *
@@ -75,10 +78,12 @@ ParticleUtility::~ParticleUtility()
 */
 bool ParticleUtility::Update(float elapsedTime)
 {
+	// 現在の生存進捗率を計算
+	float progress = FULL_PROGRESS - (m_life / m_startLife);
 	//	スケール
-	m_nowScale = DirectX::SimpleMath::Vector3::Lerp(m_startScale, m_endScale, 1.0f - m_life / m_startLife);
+	m_nowScale = DirectX::SimpleMath::Vector3::Lerp(m_startScale, m_endScale, progress);
 	//	色
-	m_nowColor = DirectX::SimpleMath::Color::Lerp(m_startColor, m_endColor, 1.0f - m_life / m_startLife);
+	m_nowColor = DirectX::SimpleMath::Color::Lerp(m_startColor, m_endColor, progress);
 	//	速度の計算
 	m_velocity += m_accele * elapsedTime;
 	//	座標の計算

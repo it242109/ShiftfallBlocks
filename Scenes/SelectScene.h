@@ -21,6 +21,13 @@
 class SelectScene : public SceneBase<UserResources>
 {
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- システム・グラフィックス ---
+	// ステージシーンからパスを取得
+	static std::string GetCurrentStageFilePath();
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ／デストラクタ
 	SelectScene();
 	~SelectScene();
@@ -47,6 +54,16 @@ public:
 	void OnDeviceLost() override;
 
 private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const float DEFAULT_POSITION_X;	///< デフォルトの位置X
+	static const float DEFAULT_POSITION_Y;	///< デフォルトの位置Y
+	static const float DEFAULT_SCALE_X;		///< デフォルトの大きさX
+	static const float DEFAULT_SCALE_Y;		///< デフォルトの大きさY
+	static const float SELECTED_UI_OFFSET_POSITION_X;	///< 選択中のUI項目を移動させるX軸のオフセット量
+	static const int MAX_MENUINDEX;			///< メニューインデックスの最大値
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// デバイスリソースのポインタ
 	std::unique_ptr<DX::DeviceResources>    m_deviceResources;
 
@@ -55,6 +72,9 @@ private:
 
 	// キーボード状態を保存
 	DirectX::Keyboard::State m_prevKeyboardState = {};
+
+	// ステージを読み込むための変数
+	std::vector<std::string> m_stageFilePaths;
 
 	// 各ステージのラストタイムを取得
 	int m_lastTime_Tutorial;

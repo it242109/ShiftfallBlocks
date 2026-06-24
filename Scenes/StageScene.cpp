@@ -7,7 +7,41 @@
 #include "StageScene.h"
 #include "Resources/json.hpp"
 
+#include "GameObjects/Gimmicks/Platform.h"
+#include "GameObjects/StageObjects/StageObject.h"
+
+// JSONファイルを使えるようにする
 using json = nlohmann::json;
+
+// 定数の定義
+const float StageScene::CAMERA_DISTANCE = 8.0f;				///< カメラの初期の距離
+const DirectX::SimpleMath::Vector3 StageScene::PLAYER_INITIAL_POSITION = { 2.0f, 2.0f, -3.0f };	///< プレイヤーの初期位置
+const DirectX::SimpleMath::Vector2 StageScene::NUMBER_POSITION = { 570.0f, 60.0f };				///< タイマーで使われる数字の初期位置
+
+const float StageScene::FALLTODEATH_HEIGHT = -15.0f;		///< 落下死する高さ
+const int StageScene::ATTACK_COUNT = 1;						///< 攻撃回数
+const float StageScene::WAIT_TIME = 3.0f;					///< ゴールまたはゲームオーバー後の待ち時間
+const float StageScene::TELEPORT_COOLDOWN_TIME = 2.0f;		///< テレポートした後のクールダウンタイム
+const float StageScene::TIMER_END_THRESHOLD = 0.0f;			///< タイマーが終了したと判定する基準値
+const float StageScene::INVINCIBILITY_END_THRESHOLD = 0.0f;	///< 無敵時間が終了した基準値
+const int StageScene::GAMEOVER_LIFE_COUNT = 0;				///< ゲームオーバーとなる残機の数
+
+const float StageScene::FONT_INITIAL_POSITION_X = -100.0f;	///< クリア／ゲームオーバーフォントの初期位置
+const float StageScene::FONT_X_MAX = 250.0f;				///< クリア／ゲームオーバーフォントXの最大数値
+const float StageScene::FONT_SPEED = 700.0f;				///< クリア／ゲームオーバーフォントの移動速度
+
+const float StageScene::MENU_DEFAULT_POSITION_X = 600.0f;	///< メニューのデフォルトの位置X
+const float StageScene::MENU_DEFAULT_SCALE_X = 0.8f;		///< メニューのデフォルトの大きさX
+const float StageScene::MENU_DEFAULT_SCALE_Y = 0.8f;		///< メニューのデフォルトの大きさY
+const float StageScene::DEFAULT_SRV_SCALE_X = 1.0f;			///< ＳＲＶのデフォルトの大きさX
+const float StageScene::DEFAULT_SRV_SCALE_Y = 1.0f;			///< ＳＲＶのデフォルトの大きさY
+
+const int StageScene::BASE_SCREEN_WIDTH = 1280;				///< ゲームの基本画面解像度（横幅）
+const int StageScene::BASE_SCREEN_HEIGHT = 720;				///< ゲームの基本画面解像度（縦幅）
+
+const float StageScene::FIELD_OF_VIEW_DEGREES = 45.0f;		///< 視野角
+const float StageScene::NEAR_PLANE_DISTANCE = 0.1f;			///< カメラの最前面のクリップ距離
+const float StageScene::FAR_PLANE_DISTANCE = 100.0f;		///< カメラの最遠面のクリップ距離
 
 /*
 * @brief コンストラクタ
@@ -18,13 +52,18 @@ using json = nlohmann::json;
 */
 StageScene::StageScene()
 	:
-	m_cameraHorizontalAngle(0.0f),
 	m_isPause(false),
 	m_isTeleporting(false),
 	m_timer(0.0f),
 	m_teleportTimer(0.0f),
 	m_number(),
-	m_isDebugMode(false)
+	m_isDebugMode(false),
+	m_waitTimer(0.0f),	
+	m_isGoalWaiting(false),
+	m_isGameOverWaiting(false),
+	m_isTimerActive(false),
+	m_fontPosX(0.0f),
+	m_isSEPlayed(false)
 {
 }
 
@@ -48,11 +87,8 @@ StageScene::~StageScene()
 */
 void StageScene::Initialize()
 {
-    // ステージに応じたJSONファイルの読み込み
-    std::string filePath = "Resources/Stages/stage01.json"; 
-    auto currentStage = ResultScene::GetGlobalStage();
-    if (currentStage == ResultScene::ResultStage::SECOND) filePath = "Resources/Stages/stage02.json"; 
-    if (currentStage == ResultScene::ResultStage::THIRD)  filePath = "Resources/Stages/stage03.json"; 
+    // JSONファイルの読み込み
+	std::string filePath = SelectScene::GetCurrentStageFilePath();
 
     // 敵の読み込み
     m_enemyStartPositions.clear();
@@ -79,51 +115,51 @@ void StageScene::Initialize()
     CreateDeviceDependentResources();
     CreateWindowSizeDependentResources();
 
-    // ロード時間に関する処理
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-    }
-
 	// カメラの作成　
 	RECT rect = GetUserResources()->GetDeviceResources()->GetOutputSize();
 	m_gameCamera = std::make_unique<GameCamera>(rect.right, rect.bottom);
+
 	// カメラの角度を取得
 	m_gameCamera->SetAngle(DirectX::XMConvertToRadians(0.0f), DirectX::XMConvertToRadians(-10.0f));
-	// カメラの位置を設定
-	m_gameCamera->SetDistance(8.0f);
+	
+	// カメラの距離を設定
+	m_gameCamera->SetDistance(CAMERA_DISTANCE);
 
     // プレイヤーとテレポート時の処理を渡してロード
     m_stage->Load(filePath, m_player.get(), [this]() {
         m_isTeleporting = true;
-        m_teleportTimer = 2.0f;
+        m_teleportTimer = TELEPORT_COOLDOWN_TIME;
         SoundManager::GetInstance().Play(L"TELEPORT");
     });
 
-    // プレイヤーの初期化
-    m_player->Initialize({ 2.0f, 2.0f, -3.0f });
+    //// プレイヤーの初期化
+    //m_player->Initialize(PLAYER_INITIAL_POSITION);
 
     // タスクマネージャーの初期化／数字の初期化
     m_number = m_taskManager.AddTask<Number>(&m_spriteBatch, m_numberSRV.GetAddressOf());
     m_number->SetNumberDecimal(m_timer);
-    m_number->SetPosition(DirectX::SimpleMath::Vector2(570.0f, 60.0f));
+    m_number->SetPosition(DirectX::SimpleMath::Vector2(NUMBER_POSITION));
 
     // タイマーの初期化
     m_timer = 0.0f;
     m_isTimerActive = true;
 
+	// ゲームクリア／ゲームオーバーフォントの初期化
+	m_fontPosX = FONT_INITIAL_POSITION_X;
+
     // メニューの初期化
     m_pauseMenu->Add(L"Resources/Textures/resume.png"
-        , ScreenManager::Pos(600, 200)
-        , ScreenManager::Scale(0.8f, 0.8f)
+        , ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 200)
+        , ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)
         , ANCHOR::MIDDLE_CENTER);
     m_pauseMenu->Add(L"Resources/Textures/retry.png"
-        , ScreenManager::Pos(600, 400)
-        , ScreenManager::Scale(0.8f, 0.8f)
+        , ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 400)
+        , ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)
         , ANCHOR::MIDDLE_CENTER);
-    m_pauseMenu->Add(L"Resources/Textures/select.png"
-        , ScreenManager::Pos(600, 600)
-        , ScreenManager::Scale(0.8f, 0.8f)
-        , ANCHOR::MIDDLE_CENTER);
+	m_pauseMenu->Add(L"Resources/Textures/select.png"
+		, ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 600)
+		, ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)
+		, ANCHOR::MIDDLE_CENTER);
 
     // ステージの初期化
 	ResetGame();
@@ -138,12 +174,21 @@ void StageScene::Initialize()
 */
 void StageScene::Update(float elapsedTime)
 {
-	// キー入力の取得
-	auto kb = DirectX::Keyboard::Get().GetState();
-	DirectX::Keyboard::State keystate = DirectX::Keyboard::Get().GetState();
-
-	// マウス入力の取得
-	auto mouse = DirectX::Mouse::Get().GetState();
+	// タイマーの更新　
+	if (m_isTimerActive && !m_isPause) m_timer += elapsedTime;
+	m_number->SetTimer(static_cast<int>(m_timer));
+	m_number->Update(elapsedTime);
+	// テレポートタイマーの更新
+	if (m_isTeleporting)
+	{
+		m_teleportTimer -= elapsedTime;
+		if (m_teleportTimer <= TIMER_END_THRESHOLD)
+		{
+			m_isTeleporting = false;
+		}
+		// 渦巻パーティクルの更新
+		m_swirlParticle->Update(elapsedTime);
+	}
 
 	// キーのインプットマネージャーの更新
 	InputManager::Get().Update();
@@ -155,26 +200,13 @@ void StageScene::Update(float elapsedTime)
 	const auto& playerCollider = m_player->GetCollision();
 
 	// ステージの更新
-	m_stage->Update(elapsedTime, m_player.get(), m_enemies, m_isTeleporting);
-
-	// タイマーの更新
-	if (m_isTimerActive && !m_isPause) m_timer += elapsedTime;
-	m_number->SetTimer(static_cast<int>(m_timer));
-	m_number->Update(elapsedTime);
-	// テレポートタイマーの更新
-	if (m_isTeleporting)
+	if (!m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting)
 	{
-		m_teleportTimer -= elapsedTime;
-		if (m_teleportTimer <= 0.0f)
-		{
-			m_isTeleporting = false;
-		}
-		// 渦巻パーティクルの更新
-		m_swirlParticle->Update(elapsedTime);
+		m_stage->Update(elapsedTime, m_player.get(), m_enemies, m_isTeleporting);
 	}
 
 	// ポーズニューの処理
-	if (InputManager::Get().IsKeyPressed(DirectX::Keyboard::Keys::T)) m_isPause = true;
+	if (InputManager::Get().IsKeyPressed(DirectX::Keyboard::Keys::T) && !m_isGoalWaiting && !m_isGameOverWaiting) m_isPause = true;
 	if (m_isPause)
 	{
 		if (InputManager::Get().IsKeyPressed(DirectX::Keyboard::Keys::Down)
@@ -215,15 +247,17 @@ void StageScene::Update(float elapsedTime)
 	}
 
 	// プレイヤーの更新
-	if (!m_player->IsGoal() && !m_isTeleporting && !m_isPause)
+	if (!m_isGoalWaiting && !m_isGameOverWaiting && !m_isTeleporting && !m_isPause)
 	{
 		m_player->Update(elapsedTime);
+		// ダッシュパーティクルの更新
+		m_dashParticle->Update(elapsedTime);
 	}
 	
 	// 敵の更新
 	for (auto& outerEnemy : m_enemies)
 	{
-		if (!outerEnemy->IsDead() && !m_isPause)
+		if (!outerEnemy->IsDead() && !m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting)
 		{
 			auto platform = m_stage->GetPlatform();
 			outerEnemy->SetPlatformData(platform->GetPositions(), platform->GetScales());
@@ -233,7 +267,7 @@ void StageScene::Update(float elapsedTime)
 		AABB outerEnemyCollider = outerEnemy->GetCollision();
 		AABB outerEnemyDamageCollider = outerEnemy->GetDamageCollision();
 		// 敵が落下したら
-		if (outerEnemy->GetPosition().y <= -15.0f)
+		if (outerEnemy->GetPosition().y <= FALLTODEATH_HEIGHT)
 		{
 			if (!outerEnemy->IsDead())
 			{
@@ -260,7 +294,7 @@ void StageScene::Update(float elapsedTime)
 		// 敵とぶつかったら
 		if (!outerEnemy->IsDead() &&
 			outerEnemyDamageCollider.CheckAABBCollision(playerCollider, outerEnemyCollider) &&
-			m_player->GetInvincibilityTime() <= 0.0f)
+			m_player->GetInvincibilityTime() <= INVINCIBILITY_END_THRESHOLD)
 		{
 			// 敵とのダメージ処理
 			m_player->TakeDamage();
@@ -287,20 +321,52 @@ void StageScene::Update(float elapsedTime)
 	}
 
 	// ゲームオーバー条件
-	if (m_player->GetLives() <= 0)
+	if (m_player->GetLives() <= GAMEOVER_LIFE_COUNT && !m_isGameOverWaiting)
 	{
 		SoundManager::GetInstance().Stop(L"GAMEPLAYBGM");
+		SoundManager::GetInstance().Stop(L"FALL");
 
+		// タイマーを止める
+		m_isTimerActive = false;
 		// 判定
 		ResultScene::SetGlobalResult(ResultScene::ResultType::GAMEOVER);
 		// どのステージか
 		ResultScene::SetGlobalStage(ResultScene::GetGlobalStage());
 
-		ChangeScene<ResultScene>();
+		m_isGameOverWaiting = true;
+		m_waitTimer = 0.0f;
 		return;
 	}
-	// クリア条件
-	if (m_player->IsGoal())
+	// ゲームオーバー後の処理
+	if (m_isGameOverWaiting)
+	{
+		// 効果音を再生
+		if (!m_isSEPlayed)
+		{
+			SoundManager::GetInstance().Play(L"GAMEOVER");
+			m_isSEPlayed = true;
+		}
+		// フォントの位置を更新
+		if (m_fontPosX < FONT_X_MAX)
+		{
+			// 右に移動
+			m_fontPosX += elapsedTime * FONT_SPEED;
+
+			if (m_fontPosX > FONT_X_MAX)
+			{
+				m_fontPosX = FONT_X_MAX;
+			}
+		}
+		m_waitTimer += elapsedTime;
+		// 一定時間経過したらリザルトシーンに遷移
+		if (m_waitTimer >= WAIT_TIME)
+		{
+			ChangeScene<ResultScene>();
+			return;
+		}
+	}
+	// クリア判定処理
+	if (m_player->IsGoal() && !m_isGoalWaiting)
 	{
 		SoundManager::GetInstance().Stop(L"GAMEPLAYBGM");
 
@@ -309,11 +375,43 @@ void StageScene::Update(float elapsedTime)
 		// 判定
 		ResultScene::SetGlobalResult(ResultScene::ResultType::CLEAR);
 		// どのステージか
-		ResultScene::SetGlobalStage(ResultScene::GetGlobalStage());		// クリアタイムをセット
+		ResultScene::SetGlobalStage(ResultScene::GetGlobalStage());
+		// クリアタイムをセット
 		ResultScene::SetGlobalClearTime(m_timer);
 
-		ChangeScene<ResultScene>();
-	};
+		// ゴール後の待機状態を開始
+		m_isGoalWaiting = true;
+		m_waitTimer = 0.0f;
+		return;
+	}
+	// ゴール後の処理
+	if (m_isGoalWaiting)
+	{
+		// 効果音を再生
+		if (!m_isSEPlayed)
+		{
+			SoundManager::GetInstance().Play(L"CLEAR");
+			m_isSEPlayed = true;
+		}
+		// フォントの位置を更新
+		if (m_fontPosX < FONT_X_MAX)
+		{
+			// 右に移動
+			m_fontPosX += elapsedTime * FONT_SPEED;
+
+			if (m_fontPosX > FONT_X_MAX)
+			{
+				m_fontPosX = FONT_X_MAX;
+			}
+		}
+		m_waitTimer += elapsedTime;
+		// 一定時間経過したらリザルトシーンに遷移
+		if (m_waitTimer >= WAIT_TIME)
+		{
+			ChangeScene<ResultScene>();
+			return;
+		}
+	}
 
 	// カメラの更新
 	m_gameCamera->Update(m_player->GetPosition(), m_stage.get());
@@ -321,7 +419,7 @@ void StageScene::Update(float elapsedTime)
 	auto eye = m_gameCamera->GetEyePosition();
 	auto target = m_gameCamera->GetTargetPosition();
 	DirectX::SimpleMath::Vector3 dir = target - eye;
-	m_stage->UpdateBillboard(target, eye);;
+	m_stage->UpdateBillboard(target, eye);
 
 	// UI更新
 	m_healthUI->Update();
@@ -357,9 +455,25 @@ void StageScene::Render()
 	m_stage->Render(context, m_view, m_proj);
 
 	// プレイヤー
-	m_player->Render();
+	if (!m_isGameOverWaiting)
+	{
+		m_player->Render();
+	}
+	// ダッシュパーティクルの描画
+	if (m_dashParticle && m_gameCamera)
+	{
+		// プレイヤーの位置に合わせてビルボード行列を更新
+		m_dashParticle->Billboard(
+			m_gameCamera->GetTargetPosition(),
+			m_gameCamera->GetEyePosition(),
+			DirectX::SimpleMath::Vector3::Up
+		);
+
+		// パーティクルを描画
+		m_dashParticle->Render(m_view, m_proj);
+	}
 	// プレイヤーの影の描画
-	if (!m_isTeleporting) 
+	if (!m_isTeleporting && !m_isGameOverWaiting)
 	{
 		m_player->RenderShadow();
 	}
@@ -381,6 +495,8 @@ void StageScene::Render()
 	// 渦巻パーティクルの描画
 	if (m_isTeleporting) m_swirlParticle->Render();
 
+	m_dashParticle->Render(m_view, m_proj);
+
 	// ビューとプロジェクション行列を設定
 	m_basicEffect->SetView(m_view);
 	m_basicEffect->SetProjection(m_proj);
@@ -388,8 +504,8 @@ void StageScene::Render()
 
 	context->IASetInputLayout(m_inputLayout.Get());
 
-	// 剣の範囲の円（剣の使用回数が1以上だったら）
-	if (m_player->GetAttackCount() >= 1)
+	// 剣の範囲の円（剣の使用回数がATTACK_COUNT以上だったら）
+	if (m_player->GetAttackCount() >= ATTACK_COUNT)
 		m_player->SwordRangeCircle();
 
 	// 画像の描画（スプライトバッチを使用）
@@ -397,47 +513,87 @@ void StageScene::Render()
 
 	m_spriteBatch->Draw(m_timeSRV.Get(), ScreenManager::Pos(480.0f, 60.0f), nullptr,
 		DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-		ScreenManager::Scale(1.0f, 1.0f));
-	if (!m_isPause)
+		ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+	if (!m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting)
 	{
 		m_spriteBatch->Draw(m_pauseKeySRV.Get(), ScreenManager::Pos(40.0f, 40.0f), nullptr,
 			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-			ScreenManager::Scale(1.0f, 1.0f));
+			ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
 	}
 
 	// タスクマネージャーの描画処理
 	m_taskManager.Render();
 
+	// 画面全体の矩形
+	RECT fullscreenRect{};
+	fullscreenRect.left = 0;
+	fullscreenRect.top = 0;
+	fullscreenRect.right = (LONG)windowSize.right;
+	fullscreenRect.bottom = (LONG)windowSize.bottom;
+
 	// ポーズメニュは画面を暗くする
 	if (m_isPause)
 	{
-		RECT fullscreenRect{};
-		fullscreenRect.left = 0;
-		fullscreenRect.top = 0;
-		fullscreenRect.right = (LONG)windowSize.right;
-		fullscreenRect.bottom = (LONG)windowSize.bottom;
-
 		// 黒色で半透明
 		DirectX::SimpleMath::Color darkColor(0.0f, 0.0f, 0.0f, 0.5f);
-
 		// 描画
 		m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, darkColor);
 	}
+	// クリア時
+	if (m_isGoalWaiting)
+	{
+		// 白色で半透明
+		DirectX::SimpleMath::Color whiteColor(1.0f, 1.0f, 1.0f, 0.5f);
+		// 描画
+		m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, whiteColor);
+	}
+	// ゲームオーバー時
+	if (m_isGameOverWaiting)
+	{
+		// 黒色でほぼ不透明
+		DirectX::SimpleMath::Color darkoOpaqueColor(0.0f, 0.0f, 0.0f, 0.2f);
+		// 描画
+		m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, darkoOpaqueColor);
+	}
 	m_spriteBatch->End();
 
+	// ステージクリアのフォントの描画
+	if (m_isGoalWaiting)
+	{
+		m_spriteBatch->Begin(DirectX::SpriteSortMode_Deferred, GetUserResources()->GetCommonStates()->NonPremultiplied());
+
+		m_spriteBatch->Draw(m_gameClearSRV.Get(), ScreenManager::Pos(m_fontPosX, 250.0f), nullptr,
+			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+			ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+		
+		m_spriteBatch->End();
+	}
+	// ゲームオーバーのフォントの描画
+	if (m_isGameOverWaiting)
+	{
+		m_spriteBatch->Begin(DirectX::SpriteSortMode_Deferred, GetUserResources()->GetCommonStates()->NonPremultiplied());
+
+		m_spriteBatch->Draw(m_gameOverSRV.Get(), ScreenManager::Pos(m_fontPosX, 250.0f), nullptr,
+			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+			ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+		
+		m_spriteBatch->End();
+	}
 	// ポーズメニューの描画
 	if (m_isPause)
 	{
 		m_spriteBatch->Begin(DirectX::SpriteSortMode_Deferred, GetUserResources()->GetCommonStates()->NonPremultiplied());
+
 		m_spriteBatch->Draw(m_selectKeySRV.Get(), ScreenManager::Pos(40.0f, 40.0f), nullptr,
 			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-			ScreenManager::Scale(1.0f, 1.0f));
+			ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
 		m_pauseMenu->Render();
+
 		m_spriteBatch->End();
 	}
 
 	// UIの描画
-	if (!m_isPause)
+	if (!m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting)
 	{
 		m_healthUI->Render();
 		m_staminaUI->Render();
@@ -525,13 +681,13 @@ void StageScene::ResetGame()
 	// BGMの再生
 	SoundManager::GetInstance().PlayLoop(L"GAMEPLAYBGM", 1);
 
-	// 床情報を渡す
+	// 床や足場の情報を渡す
 	auto floor = m_stage->GetFloor();
 	auto platform = m_stage->GetPlatform();
 	m_player->SetFloorData(floor->GetPositions(), floor->GetScales());
 	m_player->SetPlatformData(platform->GetPositions(), platform->GetScales());
 	// プレイヤーの初期化
-	m_player->Initialize({ 2.0f, 2.0f, -3.0f });
+	m_player->Initialize(PLAYER_INITIAL_POSITION);
 	// カメラをプレイヤークラスに渡す
 	m_player->SetDebugCamera(m_gameCamera.get());
 
@@ -581,6 +737,8 @@ void StageScene::CreateDeviceDependentResources()
 	DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFile(device, L"Resources/Textures/time.dds", nullptr, m_timeSRV.ReleaseAndGetAddressOf()));
 	DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFile(device, L"Resources/Textures/pauseKey.dds", nullptr, m_pauseKeySRV.ReleaseAndGetAddressOf()));
 	DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFile(device, L"Resources/Textures/selectKey.dds", nullptr, m_selectKeySRV.ReleaseAndGetAddressOf()));
+	DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFile(device, L"Resources/Textures/StageClearFont.dds", nullptr, m_gameClearSRV.ReleaseAndGetAddressOf()));
+	DX::ThrowIfFailed(DirectX::CreateDDSTextureFromFile(device, L"Resources/Textures/gameoverFont.dds", nullptr, m_gameOverSRV.ReleaseAndGetAddressOf()));
 
 	// プレイヤー生成
 	m_player = std::make_unique<Player>();
@@ -601,6 +759,11 @@ void StageScene::CreateDeviceDependentResources()
 	m_swirlParticle = std::make_unique<SwirlParticle>();
 	m_swirlParticle->Create(deviceResources);
 
+	// ダッシュパーティクルの作成
+	m_dashParticle = std::make_unique<PlayerDashParticle>();
+	m_dashParticle->Create(deviceResources);
+	m_player->SetDashParticle(m_dashParticle.get());
+
 	// 各UIのインスタンス作成
 	m_healthUI = std::make_unique<HealthUI>();
 	m_staminaUI = std::make_unique<StaminaUI>();
@@ -609,13 +772,13 @@ void StageScene::CreateDeviceDependentResources()
 
 	// 各UIの初期化処理
 	m_healthUI->SetPlayer(m_player.get());
-	m_healthUI->Initialize(deviceResources, 1280, 720);
+	m_healthUI->Initialize(deviceResources, BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT);
 	m_staminaUI->SetPlayer(m_player.get());
-	m_staminaUI->Initialize(deviceResources, 1280, 720);
+	m_staminaUI->Initialize(deviceResources, BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT);
 	m_swordUI->SetPlayer(m_player.get());
-	m_swordUI->Initialize(deviceResources, 1280, 720);
+	m_swordUI->Initialize(deviceResources, BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT);
 	m_shieldUI->SetPlayer(m_player.get());
-	m_shieldUI->Initialize(deviceResources, 1280, 720);
+	m_shieldUI->Initialize(deviceResources, BASE_SCREEN_WIDTH, BASE_SCREEN_HEIGHT);
 
 	// 画面を暗くすためのテクスチャを作成
 	uint32_t pixel = 0xffffffff;
@@ -653,6 +816,9 @@ void StageScene::CreateDeviceDependentResources()
 		(int)windowInfo.Width,
 		(int)windowInfo.Height);
 
+	// SEのフラグをリセット
+	m_isSEPlayed = false;
+
 	// デバッグ用の線の描画
 	if (!m_primitiveBatch)
 	{
@@ -669,7 +835,8 @@ void StageScene::CreateDeviceDependentResources()
 			DirectX::VertexPositionColor::InputElements,
 			DirectX::VertexPositionColor::InputElementCount,
 			shaderByteCode, byteCodeLength,
-			&m_inputLayout);
+			&m_inputLayout
+		);
 	}
 }
 
@@ -684,11 +851,10 @@ void StageScene::CreateWindowSizeDependentResources()
 {
 	// 射影行列の作成
 	RECT rect = GetUserResources()->GetDeviceResources()->GetOutputSize();
-	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView
-	(
-		DirectX::XMConvertToRadians(45.0f),
+	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
-		0.1f, 100.0f
+		NEAR_PLANE_DISTANCE, FAR_PLANE_DISTANCE
 	);
 }
 

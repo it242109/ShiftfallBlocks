@@ -11,10 +11,11 @@ SwordUI swordUI;
 // ï\é¶à íu
 const int SwordUI::SWORD_UI_X = 1100;
 const int SwordUI::SWORD_UI_Y = 500;
-
+// ëÂÇ´Ç≥
+const float SwordUI::SWORD_UI_SCALE_X = 1.0f;
+const float SwordUI::SWORD_UI_SCALE_Y = 1.0f;
 // ç≈ëÂêî
 const int SwordUI::SWORD_UI_MAX = 3;
-
 // ï\é¶ä‘äu
 const float SwordUI::SWORD_UI_RANGE = 90.0f;
 
@@ -67,7 +68,7 @@ void SwordUI::Initialize(DX::DeviceResources* pDR, int width, int height)
     {
         Add(L"Resources/Textures/swordUI.png"
             , DirectX::SimpleMath::Vector2(SWORD_UI_X - SWORD_UI_RANGE * i, SWORD_UI_Y)
-            , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+            , DirectX::SimpleMath::Vector2(SWORD_UI_SCALE_X, SWORD_UI_SCALE_Y)
             , ANCHOR::TOP_LEFT);
     }
 }
@@ -204,7 +205,7 @@ void SwordUI::Increase()
 
     Add(L"Resources/Textures/swordUI.png"
         , DirectX::SimpleMath::Vector2(SWORD_UI_X - SWORD_UI_RANGE * m_sword_UI.size(), SWORD_UI_Y)
-        , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+        , DirectX::SimpleMath::Vector2(SWORD_UI_SCALE_X, SWORD_UI_SCALE_Y)
         , ANCHOR::TOP_LEFT);
 
 	m_state ^= STATE::INCREASED;

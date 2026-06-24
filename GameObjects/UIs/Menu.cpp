@@ -17,6 +17,9 @@
 #include <CommonStates.h>
 #include <vector>
 
+// 定数の定義
+const float Menu::RATE_EXPAND = 0.3f;  ///< 拡大する割合
+
 /*
 * @brief コンストラクタ
 * 
@@ -62,7 +65,6 @@ void Menu::Initialize(DX::DeviceResources* pDR, int width, int height)
 	m_windowHeight = height;
 
 	m_baseTexturePath = L"Resources/Textures/window.png";
-
 }
 
 /*
@@ -74,6 +76,13 @@ void Menu::Initialize(DX::DeviceResources* pDR, int width, int height)
 */
 void Menu::Update()
 {
+	if (m_pDR)
+	{
+		auto viewport = m_pDR->GetScreenViewport();
+		m_windowWidth = static_cast<int>(viewport.Width);
+		m_windowHeight = static_cast<int>(viewport.Height);
+	}
+
 	DirectX::Keyboard::State keyState = DirectX::Keyboard::Get().GetState();
 	m_tracker.Update(keyState);
 
@@ -111,12 +120,12 @@ void Menu::Update()
 		DirectX::SimpleMath::Vector2::One, 1.0f);
 
 	// 拡大する割合を設定
-	select += selectScale * 0.3f;
+	select += selectScale * RATE_EXPAND;
 
-	//  算出後のサイズを現在のサイズとして設定
+	// 算出後のサイズを現在のサイズとして設定
 	m_userInterface[m_menuIndex]->SetScale(select);
 
-	//  背景用のウィンドウ画像にも同じ割合の値を設定
+	// 背景用のウィンドウ画像にも同じ割合の値を設定
 	m_base[m_menuIndex]->SetScale(select);
 
 }
@@ -133,6 +142,20 @@ void Menu::Render()
 	for (size_t i = 0; i < m_userInterface.size(); i++)
 	{
 		m_base[i]->Render();
+	}
+
+	for (size_t i = 0; i < m_userInterface.size(); ++i)
+	{
+#ifdef _DEBUG
+		// デバッグログ: ボタンの位置とスケールを出力
+		auto pos = m_userInterface[i]->GetPosition();
+		auto scale = m_userInterface[i]->GetScale();
+		OutputDebugString((L"Button " + std::to_wstring(i) + L": Pos(" +
+			std::to_wstring(pos.x) + L", " + std::to_wstring(pos.y) +
+			L"), Scale(" + std::to_wstring(scale.x) + L", " +
+			std::to_wstring(scale.y) + L")\n").c_str());
+#endif //_DEBUG
+
 		m_userInterface[i]->Render();
 	}
 }

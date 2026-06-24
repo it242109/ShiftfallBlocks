@@ -15,16 +15,60 @@
 // 列挙体の宣言
 enum class EnemyState
 {
-	Idle,
-	Chase,
-	Attack,
-	Dead
+	Idle,	///< 待機
+	Chase,	///< 追尾
+	Attack,	///< 攻撃
+	Dead	///< 死亡
 };
 
 class Enemy
 {
-// 関数
 public:
+	// ゲッター／セッター -----------------------------------
+	// --- 位置 ---
+	// 位置を取得
+	const DirectX::SimpleMath::Vector3& GetPosition() const { return m_enemyPosition; }
+	// 位置を設定
+	void SetPosition(float x, float y, float z);
+
+	// --- 移動速度・物理 ---
+	// 移動速度を取得
+	float GetVelocity() const { return m_enemyVelocity; }
+	// 重力を取得
+	const float GetGravity() const { return GRAVITY; }
+
+	// --- 当たり判定 ---
+	// 当たり判定を取得
+	const AABB& GetCollision() const { return m_enemyCollision; }
+	const AABB& GetDamageCollision() const { return m_damageCollision; }
+
+	// --- 床・足場情報  ---
+	// 床接触状態を設定
+	void SetFloorHit(bool hit) { m_floorHit = hit; };
+	// 床に接触しているかどうか
+	bool IsOnFloor() const { return m_floorHit; }
+	// 床情報を設定するメソッド
+	void SetFloorData(const std::vector<DirectX::SimpleMath::Vector3>& f_positions,
+		const std::vector<DirectX::SimpleMath::Vector3>& f_scales);
+	// 足場情報を設定するメソッド
+	void SetPlatformData(const std::vector<DirectX::SimpleMath::Vector3>& pf_positions,
+		const std::vector<DirectX::SimpleMath::Vector3>& pf_scales);
+
+	// --- 生死状態  ---
+	// 死んだかどうか
+	bool IsDead() const { return m_isDead; }
+	// 敵を死亡させる
+	void EnemyKill();
+	// リセット
+	void Reset(const DirectX::SimpleMath::Vector3& pos);
+
+	// ---  外部マネージャー・リソースの連携 ---
+	// DirectXデバイス・描画ステートの設定
+	void SetDeviceResources(DX::DeviceResources* deviceResources) { m_deviceResources = deviceResources; };
+	void SetCommonStates(DirectX::CommonStates* states) { m_states = states; };
+
+public:
+	// 関数 --------------------------------------------------
 	// コンストラクタ／デストラクタ
 	Enemy();
 	~Enemy();
@@ -65,61 +109,32 @@ public:
 
 	// 当たり判定の更新
 	void UpdateCollision(const AABB& collision, const DirectX::SimpleMath::Vector3& position);
-
-	//////////////////////////////ゲッター／セッター////////////////////////////
-	// 位置を取得
-	const DirectX::SimpleMath::Vector3& GetPosition() const { return m_enemyPosition; }
-
-	// 移動速度を取得
-	float GetVelocity() const { return m_enemyVelocity; }
-
-	// 重力を取得
-	const float GetGravity() const { return GRAVITY; }
-
-	// 当たり判定を取得
-	const AABB& GetCollision() const { return m_enemyCollision; }
-	const AABB& GetDamageCollision() const { return m_damageCollision; }
-
-	void SetDeviceResources(DX::DeviceResources* deviceResources) { m_deviceResources = deviceResources; };
-	void SetCommonStates(DirectX::CommonStates* states) { m_states = states; };
-
-	// 床情報を設定するメソッド
-	void SetFloorData(const std::vector<DirectX::SimpleMath::Vector3>& f_positions,
-		const std::vector<DirectX::SimpleMath::Vector3>& f_scales);
-
-	// 足場情報を設定するメソッド
-	void SetPlatformData(const std::vector<DirectX::SimpleMath::Vector3>& pf_positions,
-		const std::vector<DirectX::SimpleMath::Vector3>& pf_scales);
-
-	// 位置を設定
-	void SetPosition(float x, float y, float z);
-
-	// 床接触状態を設定
-	void SetFloorHit(bool hit) { m_floorHit = hit; };
-
-	// 床に接触しているかどうか
-	bool IsOnFloor() const { return m_floorHit; }
-
-	// 死んだかどうか
-	bool IsDead() const { return m_isDead; }
-	void EnemyKill();
-	void Reset(const DirectX::SimpleMath::Vector3& pos);
-	////////////////////////////////////////////////////////////////////////////
-
+	
 	// コライダーの線
 	void ColliderLine();
 
-// 定数
 private: 
-	// 重力
-	static constexpr float GRAVITY = -9.8f;
-	static constexpr float FALL_SPEED = -3.0f;
+	// 定数 ----------------------------------------------
+	static const float GRAVITY;						///< 重力
+	static const float FALL_SPEED;					///< 落下速度
+	static const float SEARCH_RANGE;				///< 索敵範囲のしきい値
+	static const float NEAR_ZERO_THRESHOLD;			///< 最小距離のしきい値
+	static const float MOVE_SPEED;					///< 移動速度
+	
+	static const float HALF_SCALE;					///< 半分のサイズにする
 
-	// ジャンプ
-	static constexpr float JUMP_POWER = 5.5f;
+	static const float TOP_Y_OFFSET_THRESHOLD;		///< 判定対象とする床の高さの許容誤差
+	static const float DEFAULT_SURFACE_Y;			///< 床が見つからなかった場合のデフォルトの高さ
+	static const float Z_FIGHTING_OFFSET;			///< Zファイティング（チラつき）防止用の微小な浮かせ幅
+	static const float SHADOW_SCALE_ATTENUATION;	///< 高さによる影の減衰率
+	static const float MIN_SHADOW_SCALE;			///< 影の最小スケール
 
-// メンバ変数
+	static const float FIELD_OF_VIEW_DEGREES;   ///< 視野角
+	static const float NEAR_PLANE_DISTANCE;		///< カメラの最前面のクリップ距離
+	static const float FAR_PLANE_DISTANCE;		///< カメラの最遠面のクリップ距離
+
 private:
+	// メンバ変数 ----------------------------------------
 	DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
 

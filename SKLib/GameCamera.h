@@ -1,7 +1,7 @@
 //--------------------------------------------------------------------------------------
 // File: GameCamera.h
 //
-// ゲームカメラクラス
+// ゲームカメラ／カメラ衝突提供インターフェースクラスの定義
 //--------------------------------------------------------------------------------------
 
 #pragma once
@@ -14,18 +14,19 @@ class ICameraCollisionProvider
 public:
 	virtual ~ICameraCollisionProvider() = default;
 
-	// レイを飛ばし、最も近い衝突物体までの距離を返す
+	// レイを飛ばし最も近い衝突物体までの距離を返す
 	virtual float GetClosestHitDistance(const DirectX::SimpleMath::Vector3& origin,
 		const DirectX::SimpleMath::Vector3& direction,
 		float maxDistance) const = 0;
-
 };
 
 // ゲームカメラクラス
 class GameCamera
 {
 private:
-	static constexpr float MOUSE_SENSITIVITY = 0.00095f;
+	// 定数
+	static constexpr float MOUSE_SENSITIVITY = 0.00095f; ///< マウス感度
+	static constexpr float DISTANCE_CORRECTION = 0.001f; ///< カメラの距離補正値
 
 private:
 	// カメラの距離
@@ -47,7 +48,7 @@ private:
 	// スクロールホイール値
 	int m_scrollWheelValue;
 
-	//マウストラッカー
+	// マウストラッカー
 	DirectX::Mouse::ButtonStateTracker m_tracker;
 
 	// スクリーンサイズ
@@ -57,6 +58,11 @@ private:
 	bool m_followMode = false;
 	DirectX::SimpleMath::Vector3 m_followEye;
 	DirectX::SimpleMath::Vector3 m_followTarget;
+
+	//bool m_isGimmickView;
+	//float m_gimmickViewTimer = 0.0f;
+	//DirectX::SimpleMath::Vector3 m_gimmickTarget;
+	//DirectX::SimpleMath::Vector3 m_gimmickEye;
 
 	// 追従モードの水平角度
 	float m_cameraHorizontalAngle;
@@ -80,11 +86,11 @@ public:
 	// コンストラクタ
 	GameCamera(int windowWidth, int windowHeight);
 
-	//void Update();
-
 	// 更新
 	void Update(const DirectX::SimpleMath::Vector3& playerPos,
 		ICameraCollisionProvider* collisionProvider);
+
+	// 現在の水平角度を取得する関数
 	float GetHorizontalAngle() const { return m_cameraHorizontalAngle; }
 
 	// カメラのビュー行列の取得関数
@@ -105,7 +111,10 @@ public:
 	// 現在の水平角度を取得する関数
 	float GetYAngle() const { return m_yAngle; }
 
+	// マウスのスクロールホイールの値を取得する関数
 	float GetScrollDelta() const { return m_scrollData; }
+
+	//bool IsGimmickViewActive() const { return m_isGimmickView; }
 	
 	// 画面サイズの設定関数
 	void SetWindowSize(int windowWidth, int windowHeight);

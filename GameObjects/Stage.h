@@ -9,8 +9,10 @@
 #include "GameObjects/Effects/PortalParticle.h"
 #include "GameObjects/Effects/SwirlParticle.h"
 #include "GameObjects/Effects/SwitchParticle.h"
-#include "SKLib/UserResources.h"
+#include "GameObjects/Effects/BlockPutParticle.h"
+#include "GameObjects/Effects/CorrectSwitchParticle.h"
 #include "SKLib/GameCamera.h"
+#include "SKLib/UserResources.h"
 #include <string>
 #include "Resources/json.hpp"
 
@@ -30,6 +32,27 @@ class GimmickBlock;
 class Stage : public ICameraCollisionProvider
 {
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- ギミック関連 ---
+	// スイッチの状態を取得
+	std::shared_ptr<Switch> GetSwitch() const { return m_switch; }
+	// ポータルの状態を取得
+	std::shared_ptr<Portal> GetPortal() const { return m_portal; }
+
+	// --- ステージ・足場判定 ---
+	// 床のオブジェクトを取得
+	StageObject* GetFloor() const { return m_floor.get(); }
+	// 足場のオブジェクトを取得
+	Platform* GetPlatform() const { return m_platform.get(); }
+
+	// --- 衝突・レイキャスト処理 ---
+	// カメラ（または指定起点）からの距離を計算する関数
+	float GetClosestHitDistance(const DirectX::SimpleMath::Vector3& origin,
+		const DirectX::SimpleMath::Vector3& direction,
+		float maxDistance) const;
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ／デストラクタ
 	Stage();
 	~Stage();
@@ -53,24 +76,27 @@ public:
 	// ビルボードの更新
 	void UpdateBillboard(const DirectX::SimpleMath::Vector3& target, const DirectX::SimpleMath::Vector3& eye);
 
-	// カメラからの距離を計算する関数
-	float GetClosestHitDistance(const DirectX::SimpleMath::Vector3& origin,
-		const DirectX::SimpleMath::Vector3& direction,
-		float maxDistance) const;
-
 	// デバッグモードでの処理
 	void Debug();
 
-	// ギミックの状態を取得
-	std::shared_ptr<Switch> GetSwitch() const { return m_switch; }
-	std::shared_ptr<Portal> GetPortal() const { return m_portal; }
-
-	// 床の判定を取得
-	StageObject* GetFloor() const { return m_floor.get(); }
-	// 足場の判定を取得
-	Platform* GetPlatform() const { return m_platform.get(); }
-
 private:
+	// 定数 ------------------------------------------------------------------------
+	static const float HALF_SCALE;									///< 半分のサイズにする
+
+	static const DirectX::SimpleMath::Vector3 DEFAULT_BLOCK_SCALE;	///< 生成するギミックブロックの標準サイズ
+	static const DirectX::SimpleMath::Vector3 DEFAULT_SWITCH_SCALE;	///< スイッチオブジェクトの標準サイズ
+	static const DirectX::SimpleMath::Vector3 BLOCK_FOLLOW_OFFSET;	///< ブロック追尾時の高さオフセット
+
+	static const int BLOCK_FOLLOW_SPEED_MULTIPLIER;					///< ブロックの追従速度の倍率
+
+	static const float TELEPORT_DURATION;							///< テレポートの演出・クールダウン時間（秒）
+	static const float TIMER_END_THRESHOLD;							///< タイマー終了の基準値
+
+	static const DirectX::SimpleMath::Vector3 WORLD_UP_VECTOR;		///< 世界の真上を指す上方向ベクトル
+
+	static const float SELF_HIT_INIT_DIST;							///< レイ発射直後の自分自身への誤判定を防ぐための最小距離
+private:
+	// メンバ変数 ------------------------------------------------------------------
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
 
@@ -94,6 +120,7 @@ private:
 	std::unique_ptr<DirectX::Model> m_switchModel;
 	std::unique_ptr<DirectX::Model> m_portalModel;
 
+	// ステージオブジェクト
 	std::unique_ptr<StageObject> m_floor;
 	std::unique_ptr<StageObject> m_wall;
 	std::unique_ptr<Platform> m_platform;
@@ -101,6 +128,7 @@ private:
 	std::shared_ptr<Portal> m_portal;
 	std::unique_ptr<Gate> m_gate;
 	std::shared_ptr<Goal> m_goal;
+
 	// アイテム
 	std::unique_ptr<Item> m_item;
 	std::vector<DirectX::SimpleMath::Vector3> m_itemSpawnPositions;
@@ -108,12 +136,17 @@ private:
 	// パーティクル
 	std::unique_ptr<PortalParticle> m_portalParticle;
 	std::unique_ptr<SwitchParticle> m_switchParticle;
+	std::unique_ptr<BlockPutParticle> m_blockPutParticle;
+	std::unique_ptr<CorrectSwitchParticle> m_correctSwitchParticle;
 
 	std::vector<std::shared_ptr<GimmickBlock>> m_gimmickBlocks; ///< 仕掛けブロック群
 	std::vector<size_t> m_itemGimmickBlockIndices;				///< アイテム用仕掛けブロックのインデックス記録する変数
 	std::shared_ptr<GimmickBlock> m_followingBlock;             ///< プレイヤーを追従するブロック
 
 	UserResources* m_userResources = nullptr; 
+
+	// カメラ
+	std::unique_ptr<GameCamera> m_camera;
 
 	// 各ギミックのON／OFF
 	std::vector<bool> m_isSwitchOn_PF;		///< 足場

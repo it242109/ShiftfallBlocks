@@ -5,7 +5,15 @@
 //--------------------------------------------------------------------------------------
 #include "pch.h"
 #include "Gate.h"
-#include "GameObjects/Stages/StageObject.h"
+#include "GameObjects/StageObjects/StageObject.h"
+
+// 定数の定義
+const float Gate::MAX_GATE_OPEN = 3.0f;					///< ゲートの最大開き具合
+const float Gate::MIN_GATE_OPEN = 0.0f;					///< ゲートの最小開き具合
+const float Gate::OPEN_CLOSE_SPEED = 0.07f;				///< ゲートの開閉速度
+const float Gate::GATE_COLLISION_SIZE_SCALE = 1.0f;		///< ゲートの当たり判定の大きさのスケール
+const float Gate::GATE_COLLISION_WIDTH_SCALE = 0.5f;	///< ゲートの当たり判定の幅
+const float Gate::GATE_COLLISION_DEPTH_SCALE = 0.3f;	///< ゲートの当たり判定の奥行
 
 /*
 * @brief コンストラクタ
@@ -61,25 +69,25 @@ void Gate::Update(Player* player, std::vector<std::unique_ptr<Enemy>>& enemies)
 	// ゲートの開閉
 	if (m_isOpen)
 	{
-		if (m_gatePosition.x <= 3.0f)
-			m_gatePosition.x += 0.03f;
+		if (m_gatePosition.x <= MAX_GATE_OPEN)
+			m_gatePosition.x += OPEN_CLOSE_SPEED;
 
 	}
 	else if (!m_isOpen)
 	{
-		if (m_gatePosition.x > 0.0f)
-			m_gatePosition.x -= 0.03f;
+		if (m_gatePosition.x > MIN_GATE_OPEN)
+			m_gatePosition.x -= OPEN_CLOSE_SPEED;
 	}
-
+	
 	// 当たり判定のサイズ
-	DirectX::SimpleMath::Vector3 gateAABBHalfSize = (m_gateScale * 1.0f);
+	DirectX::SimpleMath::Vector3 gateAABBHalfSize = (m_gateScale * GATE_COLLISION_SIZE_SCALE);
 
 	// 当たり判定の調整
-	gateAABBHalfSize.x *= 0.5f;
-	gateAABBHalfSize.z *= 0.3f;
+	gateAABBHalfSize.x *= GATE_COLLISION_WIDTH_SCALE;
+	gateAABBHalfSize.z *= GATE_COLLISION_DEPTH_SCALE;
 
 	// 当たり判定の作成
-	if (!m_isOpen || m_gatePosition.x <= 3.0f)
+	if (!m_isOpen || m_gatePosition.x <= MAX_GATE_OPEN)
 		m_gateCollision = AABB(m_gatePosition - gateAABBHalfSize, m_gatePosition + gateAABBHalfSize);
 	else
 		m_gateCollision = AABB(DirectX::SimpleMath::Vector3::Zero, DirectX::SimpleMath::Vector3::Zero);
@@ -120,6 +128,7 @@ void Gate::Render(const DirectX::SimpleMath::Matrix& view)
 	// ワールド行列
 	DirectX::SimpleMath::Matrix world = scale * rot * m_gateTrans;
 
+	// モデルの描画
 	m_model->Draw(context, *states, world, view, m_proj);
 }
 

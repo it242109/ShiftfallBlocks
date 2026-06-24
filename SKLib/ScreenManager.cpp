@@ -31,8 +31,8 @@ DirectX::SimpleMath::Vector2 ScreenManager::Pos(float x, float y)
 /*
 * @brief　スケールを現在の画面比率に変換
 *
-* @param[in]  x スクリーンのX座標
-* @param[in]  y スクリーンのY座標
+* @param[in]  sx スクリーンのX座標
+* @param[in]  sy スクリーンのY座標
 * 
 * @return       スクリーンの位置情報
 */

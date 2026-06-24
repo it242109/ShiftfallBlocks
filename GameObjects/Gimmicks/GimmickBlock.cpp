@@ -6,6 +6,11 @@
 #include "pch.h"
 #include "GimmickBlock.h"
 
+// 定数の定義
+const float GimmickBlock::DEFAULT_FOLLOW_OFFSET_Y = -2.0f;  ///< 追尾時のデフォルトの高さオフセット
+const float GimmickBlock::UNIT_CUBE_SIZE = 1.0f;            ///< AABBの基準となる単位立方体のサイズ
+const float GimmickBlock::STOP_POSITION_OFFSET_Y = 0.35f;   ///< 停止位置から下げる高さのオフセット量
+
 /*
 * @brief コンストラクタ
 *
@@ -16,7 +21,8 @@
 GimmickBlock::GimmickBlock()
     :
     m_followSpeed(0.0f),
-    m_isCarried(false)
+    m_isCarried(false),
+    m_isJustPlaced(false)
 {
 }
 
@@ -39,10 +45,10 @@ void GimmickBlock::Initialize(std::shared_ptr<DirectX::Model> model, const Direc
     m_type = type;
 
     // 追尾機能の初期化
-    m_followOffset = DirectX::SimpleMath::Vector3(0.0f, -2.0f, 0.0f);
+    m_followOffset = DirectX::SimpleMath::Vector3(0.0f, DEFAULT_FOLLOW_OFFSET_Y, 0.0f);
 
     // 当たり判定のサイズを設定
-    m_aabbSize = DirectX::SimpleMath::Vector3(1.0f, 1.0f, 1.0f) * m_scale;
+    m_aabbSize = DirectX::SimpleMath::Vector3(UNIT_CUBE_SIZE, UNIT_CUBE_SIZE, UNIT_CUBE_SIZE) * m_scale;
 
     // 当たり判定の更新
     UpdateCollision();
@@ -147,7 +153,7 @@ void GimmickBlock::SetPosition(const DirectX::SimpleMath::Vector3& pos)
 void GimmickBlock::SetScale(const DirectX::SimpleMath::Vector3& scale)
 {
     m_scale = scale;
-    m_aabbSize = DirectX::SimpleMath::Vector3(1.0f, 1.0f, 1.0f) * m_scale;
+    m_aabbSize = DirectX::SimpleMath::Vector3(UNIT_CUBE_SIZE, UNIT_CUBE_SIZE, UNIT_CUBE_SIZE) * m_scale;
     // 当たり判定の更新
     UpdateCollision();
 }
@@ -209,7 +215,7 @@ void GimmickBlock::StopFollowing(const DirectX::SimpleMath::Vector3& stopPositio
 
     // Y座標を少し下げる
     DirectX::SimpleMath::Vector3 downPos = stopPosition;
-    downPos.y -= 0.35f;
+    downPos.y -= STOP_POSITION_OFFSET_Y;
     m_position = downPos;
 
 	// 当たり判定の更新
@@ -264,6 +270,8 @@ void GimmickBlock::UpdateFollowing(float elapsedTime)
         m_isCarried = true;
         m_position = targetPos;
         UpdateCollision();
+        m_isJustPlaced = true;
+
         return;
     }
     

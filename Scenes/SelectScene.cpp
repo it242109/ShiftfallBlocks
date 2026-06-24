@@ -1,3 +1,9 @@
+//--------------------------------------------------------------------------------------
+// File: SelectStage.cpp
+//
+// セレクトシーンクラス
+//--------------------------------------------------------------------------------------
+
 #include "pch.h"
 #include "SelectScene.h"
 
@@ -6,6 +12,17 @@
 #include "StageScene.h"
 #include "LoadScene.h"
 #include "ResultScene.h"
+
+// 定数の定義
+const float SelectScene::DEFAULT_POSITION_X = 0.0f;	///< デフォルトの位置X
+const float SelectScene::DEFAULT_POSITION_Y = 0.0f;	///< デフォルトの位置Y
+const float SelectScene::DEFAULT_SCALE_X = 0.7f;	///< デフォルトの大きさX
+const float SelectScene::DEFAULT_SCALE_Y = 0.7f;	///< デフォルトの大きさY
+const float SelectScene::SELECTED_UI_OFFSET_POSITION_X = 900.0f;	///< 選択中のUI項目を移動させるX軸のオフセット量
+const int SelectScene::MAX_MENUINDEX = 4;			///< メニューインデックスの最大値
+
+// 静的変数の実体定義
+static std::string s_currentStageFilePath = "Resources/Stages/stage01.json";
 
 /*
 * @brief コンストラクタ
@@ -42,6 +59,18 @@ SelectScene::~SelectScene()
 }
 
 /*
+* @brief ステージシーンからパスを取得
+*
+* @param[in]  なし
+*
+* @return なし
+*/
+std::string SelectScene::GetCurrentStageFilePath()
+{
+	return s_currentStageFilePath;
+}
+
+/*
 * @brief 初期化処理
 *
 * @param[in]  なし
@@ -59,26 +88,60 @@ void SelectScene::Initialize()
 	auto transitionMask = GetUserResources()->GetTransitionMask();
 	transitionMask->Open();
 
+	// ステージのパス一覧を読み込む
+	m_stageFilePaths.clear();
+	std::ifstream listFile("Resources/stage_list.json");
+	if (listFile.is_open())
+	{
+		nlohmann::json stageListData;
+		listFile >> stageListData;
+
+		// "STAGES"キーが存在するか確認し、配列であることをチェック
+		if (stageListData.contains("STAGES") && stageListData["STAGES"].is_array())
+		{
+			// 各ステージのパスを取得してリストに追加
+			for (auto& stage : stageListData["STAGES"])
+			{
+				if (stage.contains("data"))
+				{
+					m_stageFilePaths.push_back(stage["data"].get<std::string>());
+				}
+			}
+		}
+		listFile.close();
+	}
+	else
+	{
+		// ファイルが開けない場合のエラーハンドリング
+		m_stageFilePaths = 
+		{
+			"Resources/Stages/tutorial.json",
+			"Resources/Stages/stage01.json",
+			"Resources/Stages/stage02.json",
+			"Resources/Stages/stage03.json"
+		};
+	}
+
 	// メニューの初期化
 	m_selectMenu->Add(L"Resources/Textures/tutorial.png"
-		, ScreenManager::Pos(0.0f, 0.0f)
-		, ScreenManager::Scale(0.7f, 0.7f)
+		, ScreenManager::Pos(DEFAULT_POSITION_X, DEFAULT_POSITION_Y)
+		, ScreenManager::Scale(DEFAULT_SCALE_X, DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
 	m_selectMenu->Add(L"Resources/Textures/Stage1.png"
-		, ScreenManager::Pos(0.0f, 0.0f)
-		, ScreenManager::Scale(0.7f, 0.7f)
+		, ScreenManager::Pos(DEFAULT_POSITION_X, DEFAULT_POSITION_Y)
+		, ScreenManager::Scale(DEFAULT_SCALE_X, DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
 	m_selectMenu->Add(L"Resources/Textures/Stage2.png"
-		, ScreenManager::Pos(0.0f, 0.0f)
-		, ScreenManager::Scale(0.7f, 0.7f)
+		, ScreenManager::Pos(DEFAULT_POSITION_X, DEFAULT_POSITION_Y)
+		, ScreenManager::Scale(DEFAULT_SCALE_X, DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
 	m_selectMenu->Add(L"Resources/Textures/Stage3.png"
-		, ScreenManager::Pos(0.0f, 0.0f)
-		, ScreenManager::Scale(0.7f, 0.7f)
+		, ScreenManager::Pos(DEFAULT_POSITION_X, DEFAULT_POSITION_Y)
+		, ScreenManager::Scale(DEFAULT_SCALE_X, DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
 	m_selectMenu->Add(L"Resources/Textures/title.png"
-		, ScreenManager::Pos(0.0f, 0.0f)
-		, ScreenManager::Scale(0.7f, 0.7f)
+		, ScreenManager::Pos(DEFAULT_POSITION_X, DEFAULT_POSITION_Y)
+		, ScreenManager::Scale(DEFAULT_SCALE_X, DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
 
 	// タスクマネージャーの初期化／数字の初期化
@@ -88,6 +151,7 @@ void SelectScene::Initialize()
 	m_bestTimeNumber = m_taskManager.AddTask<Number>(&m_spriteBatch, m_numberSRV.GetAddressOf());
 	m_bestTimeNumber->SetPosition(DirectX::SimpleMath::Vector2(550.0f, 470.0f));
 
+	// 各ステージのタイムを取得
 	if (m_selectMenu->m_menuIndex == 0)
 	{
 		m_lastTimeNumber->SetNumber(m_lastTime_Tutorial);
@@ -142,7 +206,7 @@ void SelectScene::Update(float elapsedTime)
 	{
 		sound.Play(L"SELECT");
 		// 進ませないように固定する
-		if (m_selectMenu->m_menuIndex == 0) m_selectMenu->m_menuIndex = 4;
+		if (m_selectMenu->m_menuIndex == 0) m_selectMenu->m_menuIndex = MAX_MENUINDEX;
 	}
 	// 上方向の制限
 	if (InputManager::Get().IsKeyPressed(DirectX::Keyboard::Keys::Up)
@@ -150,7 +214,7 @@ void SelectScene::Update(float elapsedTime)
 	{
         sound.Play(L"SELECT");
 		// 戻らせないように固定する
-		if (m_selectMenu->m_menuIndex >= 4) m_selectMenu->m_menuIndex = 0;
+		if (m_selectMenu->m_menuIndex >= MAX_MENUINDEX) m_selectMenu->m_menuIndex = 0;
 	}
 
 	// 選択中のインデックスを直接取得
@@ -166,12 +230,16 @@ void SelectScene::Update(float elapsedTime)
 			{ -250.0f, 400.0f }
 	};
 
-	// 選択中のものだけずらす
-	positions[selectedIndex].x += 900.0f;
+	// 配列から要素数を自動計算
+	const size_t menuCount = std::size(positions);
 
-	for (int i = 0; i < 5; i++)
+	// 選択中のものだけずらす
+	positions[selectedIndex].x += SELECTED_UI_OFFSET_POSITION_X;
+
+	// 計算した要素数を使ってループを回す
+	for (int i = 0; i < menuCount; i++)
 	{
-		m_selectMenu->SetPosition(i, ScreenManager::Pos(positions[i].x, positions[i].y));
+		m_selectMenu->SetPosition(static_cast<int>(i), ScreenManager::Pos(positions[i].x, positions[i].y));
 	}
 
 	// メニューの更新
@@ -216,7 +284,7 @@ void SelectScene::Update(float elapsedTime)
 	m_lastTimeNumber->Update(elapsedTime);
 	m_bestTimeNumber->Update(elapsedTime);
 
-	if (m_selectMenu->m_menuIndex < 4)
+	if (m_selectMenu->m_menuIndex < MAX_MENUINDEX)
 	{
 		// タスクマネージャーの更新処理
 		m_taskManager.Update(elapsedTime);
@@ -230,6 +298,8 @@ void SelectScene::Update(float elapsedTime)
 
 		if (!m_isClosingTutorial)
 		{
+			ResultScene::SetGlobalStage(ResultScene::ResultStage::TUTORIAL);
+
 			transitionMask->Close(); // フェードアウト
 			m_isClosingTutorial = true;
 		}
@@ -249,6 +319,11 @@ void SelectScene::Update(float elapsedTime)
 
 		if (!m_isClosingFirstStage)
 		{
+			if (1 < m_stageFilePaths.size())
+			{
+				s_currentStageFilePath = m_stageFilePaths[1];
+			}
+
 			ResultScene::SetGlobalStage(ResultScene::ResultStage::FIRST);
 
 			transitionMask->Close();
@@ -269,6 +344,10 @@ void SelectScene::Update(float elapsedTime)
 
 		if (!m_isClosingSecondStage)
 		{
+			if (2 < m_stageFilePaths.size())
+			{
+				s_currentStageFilePath = m_stageFilePaths[2];
+			}
 			ResultScene::SetGlobalStage(ResultScene::ResultStage::SECOND);
 
 			transitionMask->Close();
@@ -289,6 +368,10 @@ void SelectScene::Update(float elapsedTime)
 
 		if (!m_isClosingThirdStage)
 		{
+			if (3 < m_stageFilePaths.size())
+			{
+				s_currentStageFilePath = m_stageFilePaths[3];
+			}
 			ResultScene::SetGlobalStage(ResultScene::ResultStage::THIRD);
 
 			transitionMask->Close();
@@ -340,7 +423,7 @@ void SelectScene::Render()
 		ScreenManager::Scale(1.0f, 0.8f));
 
 	// タスクマネージャーの描画処理
-	if (m_selectMenu->m_menuIndex < 4)
+	if (m_selectMenu->m_menuIndex < MAX_MENUINDEX)
 	{
 		m_taskManager.Render();
 	}
@@ -348,7 +431,8 @@ void SelectScene::Render()
 		DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
 		ScreenManager::Scale(1.5f, 1.5f));
 
-	if (m_selectMenu->m_menuIndex < 4)
+	// ラストタイム・ベストタイムの描画
+	if (m_selectMenu->m_menuIndex < MAX_MENUINDEX)
 	{
 		m_spriteBatch->Draw(m_lastTimeSRV.Get(), ScreenManager::Pos(370.0f, 400.0f), nullptr,
 			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
@@ -362,6 +446,7 @@ void SelectScene::Render()
 	if (m_selectMenu->m_menuIndex > 0)
 		m_spriteBatch->Draw(m_upSRV.Get(), DirectX::SimpleMath::Vector2(ScreenManager::Pos(620.0f, 180.0f)));
 
+	// 矢印の描画
 	m_spriteBatch->Draw(m_selectKeySRV.Get(), ScreenManager::Pos(40.0f, 640.0f), nullptr,
 		DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
 		ScreenManager::Scale(1.0f, 1.0f));
@@ -431,6 +516,8 @@ void SelectScene::CreateDeviceDependentResources()
 * @brief　ウインドウサイズに依存するリソースを作成する関数
 *
 * @param[in]  なし
+* 
+* @return なし
 */
 void SelectScene::CreateWindowSizeDependentResources()
 {

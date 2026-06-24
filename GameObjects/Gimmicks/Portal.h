@@ -16,6 +16,7 @@ enum class PortalTargetType
 	NONE
 };
 
+// ポータルデータ
 struct PortalData
 {
 	DirectX::SimpleMath::Vector3 position;
@@ -27,6 +28,27 @@ struct PortalData
 class Portal
 {
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- テレポート状態  ---
+	// ポータルが作動中（移動演出中など）かどうか
+	bool IsTeleporting() const { return m_isTeleporting; }
+	// テレポートが完了したかどうかを取得
+	bool IsTeleported() const { return m_isTeleported; }
+	// テレポートの完了状態を設定
+	void SetTeleported(bool state) { m_isTeleported = state; }
+
+	// --- ポータルデータ管理 ---
+	// ポータル全体のリストを取得
+	const std::vector<PortalData>& GetPortals() const { return m_portals; }
+	// 入り口と出口のペアの数を取得
+	int GetPortalSetCount() const;
+
+	// --- グラフィックリソース ---
+	// モデルの設定（セッター）
+	void SetModel(DirectX::Model* model) { m_model = model; }
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// 初期化処理
 	void Initialize(ID3D11DeviceContext* context);
 
@@ -41,21 +63,6 @@ public:
 	// 各ポータルの追加処理
 	void AddPortal(const PortalData& data, int setIndex);
 
-	// ポータルが作動したら
-	bool IsTeleporting() const { return m_isTeleporting; }
-
-	bool IsTeleported() const { return m_isTeleported; }
-	void SetTeleported(bool state) { m_isTeleported = state; }
-
-	// モデルの設定（セッター）
-	void SetModel(DirectX::Model* model) { m_model = model; }
-
-	// ポータルデータの取得
-	const std::vector<PortalData>& GetPortals() const { return m_portals; }
-
-	// ポータルセットの数を取得
-	int GetPortalSetCount() const;
-
 	// ポータルをセットに割り当てる
 	void AssignPortalToSet(size_t portalIndex, int setIndex);
 
@@ -63,6 +70,14 @@ public:
 	void ColliderLine(const std::vector<bool>& portalStates);
 
 private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const float TIMER_END_THRESHOLD;		///< タイマーが終了したと判定する基準値
+	static const float INVALID_SET_INDEX;		///< ポータルセットが指定されていない場合のインデックス値
+	static const float HALF_SCALE;				///< 半分のサイズにする
+	static const float TELEPORT_COOLDOWN_TIME;	///< テレポート発動後のクールダウン時間
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
 

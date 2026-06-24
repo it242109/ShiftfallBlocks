@@ -12,6 +12,53 @@
 #include "SKLib/SoundManager.h"
 #include "SKLib/TutorialManager.h"
 
+// 定数の定義
+const float Player::GRAVITY = -9.8f;						///< 重力
+const float Player::JUMP_POWER = 5.5f;						///< ジャンプの初速
+const float Player::FALL_SPEED = -3.0f;						///< 落下速度
+const float Player::NORMAL_SPEED = 0.15f;					///< 通常スピードの値
+const float Player::DASH_SPEED = 0.3f;						///< ダッシュスピードの値
+const float Player::MAX_STAMINA = 50.0f;					///< スタミナ最大値
+const float Player::STAMINA_COST_PER_SEC = 20.0f;			///< 秒ごとのスタミナコスト
+const float Player::STAMINA_REGEN_RATE = 5.0f;				///< スタミナ回復率
+const float Player::MIN_DASH_STAMINA = 10.0f;				///< スタミナの最小値
+const float Player::DASH_RECOVERY_THRESHOLD_RATIO = 0.5f;	///< ダッシュ再開が可能になるスタミナの割合
+const float Player::FALL_DEATH_THRESHOLD_Y = -12.0f;		///< 落下死と判定するY座標のしきい値	
+const float Player::HALF_SCALE = 0.5f;						///< 半分のサイズにする
+const float Player::TOP_Y_OFFSET_THRESHOLD = 0.5f;			///< 判定対象とする床の高さの許容誤差
+const float Player::DEFAULT_SURFACE_Y = 0.0f;				///< 床が見つからなかった場合のデフォルトの高さ
+const float Player::SHADOW_Z_FIGHTING_OFFSET = 0.03f;		///< 地面とのちらつきを防ぐための高さオフセット（影用）
+const float Player::SHADOW_SCALE_ATTENUATION = 0.05f;		///< 高さによる影の減衰率
+const float Player::MIN_SHADOW_SCALE = 0.2f;				///< 影の最小スケール
+
+const float Player::BLINK_SPEED = 5.0f;											///< 点滅速度
+const float Player::INVINCIBLE_BLINK_THRESHOLD = 0.5f;							///< 点滅のしきい値
+const DirectX::SimpleMath::Vector3 Player::SWORD_OFFSET = { 0.4f, 0.1f, 0.0f };	///< 剣のオフセット値
+const float Player::SWORD_ROT_Y = DirectX::XMConvertToRadians(90.0f);			///< 剣のＹの向き
+const float Player::SWORD_ROT_X = DirectX::XMConvertToRadians(0.0f);			///< 剣のＸの向き
+const float Player::SWORD_SCALE = 0.8f;											///< 剣の大きさ
+const DirectX::SimpleMath::Vector3 Player::SHIELD_OFFSET = { -0.5f, 0.1f, 0.0f };///< 盾のオフセット値
+const float Player::SHIELD_ROT_Y = DirectX::XMConvertToRadians(0.0f);			///< 盾のＹの向き
+const float Player::SHIELD_ROT_X = DirectX::XMConvertToRadians(0.0f);			///< 盾のＸの向き
+const float Player::SHIELD_SCALE = 0.6f;										///< 盾の大きさ
+
+const float Player::SHIELD_INVINCIBILITY_DURATION = 1.0f;	///< シールド発動時の無敵時間（秒）
+const float Player::DAMAGE_INVINCIBILITY_DURATION = 2.0f;	///< 被弾時の無敵時間（秒）
+
+const int Player::CIRCLE_SEGMENTS = 32;						///< 円を表現する分割数
+const float Player::SWORD_LINE_WIDTH = 1.1f;				///< 描画する線の太さ
+const float Player::SWORD_Z_FIGHTING_OFFSET = 0.1f;			///< 地面とのちらつきを防ぐための高さオフセット（剣の範囲用）
+const float Player::FULL_CIRCLE_TURN_RATIO = 2.0f;			///< ラジアン計算用の全周係数（2.0 * π = 360度）
+
+const float Player::MOUSEWHEEL_MIN_RANGE = 1.0f;			///< マウスホイールの最小値
+const float Player::MOUSEWHEEL_MAX_RANGE = 5.0f;			///< マウスホイールの最大値
+const float Player::RANGE_STEP = 1.0f;						///< 一回のホイールの刻みで変化させる量
+const int Player::WHEEL_TICKS = 120;						///< ホイール入力をノッチ数に変換する定数
+
+const float Player::FIELD_OF_VIEW_DEGREES = 45.0f;			///< 視野角
+const float Player::NEAR_PLANE_DISTANCE = 0.1f;				///< カメラの最前面のクリップ距離
+const float Player::FAR_PLANE_DISTANCE = 100.0f;			///< カメラの最遠面のクリップ距離
+
 /*
 * @brief コンストラクタ
 *
@@ -32,7 +79,9 @@ Player::Player()
 	  m_isGoal(false),
 	  m_isDead(false),
 	  m_invincibilityTime(0.0f),
-	  m_attackRange(1.0f)
+	  m_attackRange(1.0f),
+	  m_attackTimer(0.0f),
+	  m_currentSurfaceY(0.0f)
 {
 }
 
@@ -167,7 +216,7 @@ void Player::Update(float elapsedTime)
 			}
 		}
 		// スタミナが最低回復量を超えたらダッシュ再開可能にする
-		if (m_stamina > MAX_STAMINA * 0.5f)
+		if (m_stamina > MAX_STAMINA * DASH_RECOVERY_THRESHOLD_RATIO)
 		{
 			m_canDash = true;
 		}
@@ -187,6 +236,20 @@ void Player::Update(float elapsedTime)
 
 		// 移動を適用
 		m_playerPosition += moveDirection * speed;
+
+		// ダッシュパーティクルの処理
+		if (isDashing && m_pDashParticle)
+		{
+			// エミッター情報の作成
+			playerEmitterInfo info;
+			info.position = m_playerPosition;
+			info.scale = m_playerScale;
+
+			std::vector<playerEmitterInfo> emitters = { info };
+
+			// パーティクルにエミッター情報を渡す
+			m_pDashParticle->SetEmitters(emitters);
+		}
 
 		// プレイヤーの向きを更新
 		m_playerForward = moveDirection;
@@ -248,7 +311,7 @@ void Player::Update(float elapsedTime)
 	}
 
 	// 落下したら
-	if (m_playerPosition.y <= -12.0f)
+	if (m_playerPosition.y <= FALL_DEATH_THRESHOLD_Y)
 	{
 		sound.Play(L"FALL");
 		// 残機を一つ減らす
@@ -318,11 +381,8 @@ void Player::Render()
 
 	if (m_invincibilityTime > 0.0f)
 	{
-		// 点滅速度
-		float blinkSpeed = 5.0f;
-
 		// 点滅のON／OFFを判定
-		if (fmod(m_invincibilityTime * blinkSpeed, 1.0f) < 0.5f)
+		if (fmod(m_invincibilityTime * BLINK_SPEED, 1.0f) < INVINCIBLE_BLINK_THRESHOLD)
 		{
 			// モデルの描画
 			m_playerModel->Draw(context, *states, playerWorld, m_view, m_proj);
@@ -338,17 +398,14 @@ void Player::Render()
 	if (m_havingSwordModel && m_attackCount >= 1)
 	{
 		// オフセットの作成
-		DirectX::SimpleMath::Vector3 swordOffset = { 0.4f,0.1f, 0.0f };
-		DirectX::SimpleMath::Matrix swordTrans = DirectX::SimpleMath::Matrix::CreateTranslation(swordOffset);
+		DirectX::SimpleMath::Matrix swordTrans = DirectX::SimpleMath::Matrix::CreateTranslation(SWORD_OFFSET);
 
 		// 剣の回転
-		constexpr float swordAngleY = DirectX::XMConvertToRadians(90.0f);
-		constexpr float swordAngleX = DirectX::XMConvertToRadians(0.0f);
-		DirectX::SimpleMath::Matrix swordRotY = DirectX::SimpleMath::Matrix::CreateRotationY(swordAngleY);
-		DirectX::SimpleMath::Matrix swordRotX = DirectX::SimpleMath::Matrix::CreateRotationX(swordAngleX);
+		DirectX::SimpleMath::Matrix swordRotY = DirectX::SimpleMath::Matrix::CreateRotationY(SWORD_ROT_Y);
+		DirectX::SimpleMath::Matrix swordRotX = DirectX::SimpleMath::Matrix::CreateRotationX(SWORD_ROT_X);
 
 		// ソードのスケール
-		DirectX::SimpleMath::Matrix swordScale = DirectX::SimpleMath::Matrix::CreateScale(0.8f);
+		DirectX::SimpleMath::Matrix swordScale = DirectX::SimpleMath::Matrix::CreateScale(SWORD_SCALE);
 
 		// プレイヤーのワールド行列×オフセット
 		DirectX::SimpleMath::Matrix swordWorld = swordScale * swordRotX * swordRotY * swordTrans * playerWorld;
@@ -361,17 +418,14 @@ void Player::Render()
 	if (m_havingShieldModel && m_defenseCount >= 1)
 	{
 		// オフセットの作成
-		DirectX::SimpleMath::Vector3 shieldOffset = { -0.5f,0.1f,0.0f };
-		DirectX::SimpleMath::Matrix shieldTrans = DirectX::SimpleMath::Matrix::CreateTranslation(shieldOffset);
+		DirectX::SimpleMath::Matrix shieldTrans = DirectX::SimpleMath::Matrix::CreateTranslation(SHIELD_OFFSET);
 
 		// 盾の回転
-		constexpr float shieldAngleY = DirectX::XMConvertToRadians(0.0f);
-		constexpr float shieldAngleX = DirectX::XMConvertToRadians(0.0f);
-		DirectX::SimpleMath::Matrix shieldRotY = DirectX::SimpleMath::Matrix::CreateRotationY(shieldAngleY);
-		DirectX::SimpleMath::Matrix shieldRotX = DirectX::SimpleMath::Matrix::CreateRotationY(shieldAngleX);
+		DirectX::SimpleMath::Matrix shieldRotY = DirectX::SimpleMath::Matrix::CreateRotationY(SHIELD_ROT_Y);
+		DirectX::SimpleMath::Matrix shieldRotX = DirectX::SimpleMath::Matrix::CreateRotationY(SHIELD_ROT_X);
 
 		// 盾のスケール
-		DirectX::SimpleMath::Matrix shieldScale = DirectX::SimpleMath::Matrix::CreateScale(0.6f);
+		DirectX::SimpleMath::Matrix shieldScale = DirectX::SimpleMath::Matrix::CreateScale(SHIELD_SCALE);
 
 		// プレイヤーのワールド行列×オフセット
 		DirectX::SimpleMath::Matrix shieldWorld = shieldScale * shieldRotX * shieldRotY * shieldTrans * playerWorld;
@@ -442,9 +496,9 @@ void Player::CreateDeviceDependentResources()
 	// 射影行列の作成
 	RECT rect = m_deviceResources->GetOutputSize();
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
-		0.1f, 100.0f
+		NEAR_PLANE_DISTANCE, FAR_PLANE_DISTANCE
 	);
 }
 
@@ -458,9 +512,10 @@ void Player::CreateDeviceDependentResources()
 void Player::RenderShadow()
 {
 	auto context = m_deviceResources->GetD3DDeviceContext();
+	const auto defaultLightDir = DirectX::SimpleMath::Vector3(0.2f, 1.0f, 0.2f);
 
 	// ライトの方向（斜め上から - 影が見えやすい角度）
-	DirectX::SimpleMath::Vector3 lightDir = DirectX::SimpleMath::Vector3(0.2f, 1.0f, 0.2f);
+	DirectX::SimpleMath::Vector3 lightDir = defaultLightDir;
 	lightDir.Normalize();
 
 	// プレイヤーが立っている床を検出
@@ -469,63 +524,46 @@ void Player::RenderShadow()
 	float playerZ = m_playerPosition.z;
 	float closestSurfaceY = m_currentSurfaceY;
 
-	// 床
-	for (size_t i = 0; i < m_floorPositions.size(); ++i) 
-	{
-		// 床の半分の幅・奥行きを計算
-		float halfWidth = m_floorScales[i].x * 0.5f;
-		float halfDepth = m_floorScales[i].z * 0.5f;
-
-		// この床のXZ範囲
-		float minX = m_floorPositions[i].x - halfWidth;
-		float maxX = m_floorPositions[i].x + halfWidth;
-		float minZ = m_floorPositions[i].z - halfDepth;
-		float maxZ = m_floorPositions[i].z + halfDepth;
-
-		// プレイヤーがこの床のXZ範囲内にいるかチェック
-		if (playerX >= minX && playerX <= maxX &&
-			playerZ >= minZ && playerZ <= maxZ)
+	// 床と足場の両方をチェックする共通ラムダ式
+	auto checkSurface = [&](const std::vector<DirectX::SimpleMath::Vector3>& posList,
+		const std::vector<DirectX::SimpleMath::Vector3>& scaleList)
 		{
-			// この床の上面のY座標
-			float topY = m_floorPositions[i].y + (m_floorScales[i].y * 0.5f);
-
-			// プレイヤーが床より上にいる場合、この床を候補にする
-			if (topY <= playerY && topY > closestSurfaceY)
+			for (size_t i = 0; i < posList.size(); ++i)
 			{
-				closestSurfaceY = topY;
+				// オブジェクトの半分の幅・奥行きを計算
+				float halfWidth = scaleList[i].x * HALF_SCALE;
+				float halfDepth = scaleList[i].z * HALF_SCALE;
+
+				// このオブジェクトのXZ範囲
+				float minX = posList[i].x - halfWidth;
+				float maxX = posList[i].x + halfWidth;
+				float minZ = posList[i].z - halfDepth;
+				float maxZ = posList[i].z + halfDepth;
+
+				// プレイヤーがXZ範囲内にいるかチェック
+				if (playerX >= minX && playerX <= maxX &&
+					playerZ >= minZ && playerZ <= maxZ)
+				{
+					// このオブジェクトの上面のY座標
+					float topY = posList[i].y + (scaleList[i].y * HALF_SCALE);
+
+					// プレイヤーが上にいる場合、より高い上面を候補にする
+					if (topY <= playerY && topY > closestSurfaceY)
+					{
+						closestSurfaceY = topY;
+					}
+				}
 			}
-		}
-	}
-	// 足場
-	for (size_t j = 0; j < m_platformPositions.size(); ++j) 
-	{
-		// 足場の半分の幅・奥行を計算
-		float halfWidth = m_platformScales[j].x * 0.5f;
-		float halfDepth = m_platformScales[j].z * 0.5f;
+		};
 
-		// この足場のXZ範囲
-		float minX = m_platformPositions[j].x - halfWidth;
-		float maxX = m_platformPositions[j].x + halfWidth;
-		float minZ = m_platformPositions[j].z - halfDepth;
-		float maxZ = m_platformPositions[j].z + halfDepth;
+	// 静的な床の判定を実行
+	checkSurface(m_floorPositions, m_floorScales);
 
-		// プレイヤーがこの足場のXZ範囲内にいるかチェック
-		if (playerX >= minX && playerX <= maxX &&
-			playerZ >= minZ && playerZ <= maxZ)
-		{
-			// この足場の上面のY座標
-			float topY = m_platformPositions[j].y + (m_platformScales[j].y * 0.5f);
-
-			// プレイヤーが足場より上にいる場合、この足場を候補	
-			if (topY <= playerY && topY > closestSurfaceY)
-			{
-				closestSurfaceY = topY;
-			}
-		}
-	}
+	// 動的な足場の判定を実行
+	checkSurface(m_platformPositions, m_platformScales);
 
 	// Zファイティング防止のため、少し上げる
-	closestSurfaceY += 0.03f;
+	closestSurfaceY += SHADOW_Z_FIGHTING_OFFSET;
 
 	// シャドウマトリクスの作成
 	DirectX::SimpleMath::Plane groundPlane = DirectX::SimpleMath::Plane(0.0f, 1.0f, 0.0f, -closestSurfaceY);
@@ -541,8 +579,8 @@ void Player::RenderShadow()
 		{
 			//ジャンプ中は影を小さくする
 			float heightDiff = m_playerPosition.y - closestSurfaceY;
-			scaleFactor = 1.0f / (1.0f + heightDiff * 0.03f);
-			scaleFactor = std::max(0.2f, scaleFactor); 
+			scaleFactor = 1.0f / (1.0f + heightDiff * SHADOW_SCALE_ATTENUATION);
+			scaleFactor = std::max(MIN_SHADOW_SCALE, scaleFactor);
 		}
 
 		DirectX::SimpleMath::Matrix shadowScale = DirectX::SimpleMath::Matrix::CreateScale(scaleFactor);
@@ -600,14 +638,14 @@ void Player::TakeDamage()
 	if (m_defenseCount > 0)
 	{
 		m_defenseCount--;
-		m_invincibilityTime = 1.0f;
+		m_invincibilityTime = SHIELD_INVINCIBILITY_DURATION;
 		m_isPlayShieldSound = true;
 	}
 	// ダメージ処理
 	else if (m_lives > 0) 
 	{
 		m_lives--;
-		m_invincibilityTime = 2.0f;
+		m_invincibilityTime = DAMAGE_INVINCIBILITY_DURATION;
 		m_isPlayDamageSound = true;
 		m_isDead = true;
 	}
@@ -721,14 +759,6 @@ void Player::UpdateCollision(const AABB& collision, const DirectX::SimpleMath::V
 */
 void Player::UpdateAttackRange(int wheelDelta)
 {
-	// 最小値／最大値
-	const float MIN_RANGE = 1.0f;
-	const float MAX_RANGE = 5.0f;
-
-	// 一回のホイールの刻みで変化させる量
-	const float RANGE_STEP = 1.0f;
-	const int WHEEL_TICKS = 120;
-
 	// 変化量を計算
 	float delta = (float)wheelDelta / WHEEL_TICKS * RANGE_STEP;
 
@@ -739,17 +769,8 @@ void Player::UpdateAttackRange(int wheelDelta)
 #ifdef __cpp_lib_clamp
 	m_attackRange = std::clamp(m_attackRange, MIN_RANGE, MAX_RANGE);
 #else
-	m_attackRange = std::max(MIN_RANGE, std::min(MAX_RANGE, m_attackRange));
+	m_attackRange = std::max(MOUSEWHEEL_MIN_RANGE, std::min(MOUSEWHEEL_MAX_RANGE, m_attackRange));
 #endif // __cpp_lib_clamp
-}
-
-void Player::SetRespawnPoint(const DirectX::SimpleMath::Vector3& pos, float yOffset)
-{
-	m_respawnPoint = pos;
-	if (yOffset != 0.0f)
-	{
-		m_respawnPoint.y += yOffset;
-	}
 }
 
 /*
@@ -839,37 +860,37 @@ void Player::SwordRangeCircle()
 
 	m_primitiveBatch->Begin();
 
-	// 線の色と太さ
+	// 線の色
 	auto lineColor = DirectX::Colors::OrangeRed;
-	const int segments = 32;
 
-	// 線の太さ
-	const float lineWidth = 1.1f;
+	// 攻撃コリジョンのAABBから半径と内半径を計算
+	const float radius = (m_attackCollision.max.x - m_attackCollision.min.x) * HALF_SCALE;
+	const float innerRadius = radius - SWORD_LINE_WIDTH;
 
-	const float radius = (m_attackCollision.max.x - m_attackCollision.min.x) * 0.5f;
-	const float innerRadius = radius - lineWidth;
-
-	// 中心座標
+	// 中心座標の計算
 	DirectX::SimpleMath::Vector3 center;
-	center.x = (m_attackCollision.min.x + m_attackCollision.max.x) * 0.5f;
-	center.y = m_attackCollision.min.y + 0.1f;
-	center.z = (m_attackCollision.min.z + m_attackCollision.max.z) * 0.5f;
+	center.x = (m_attackCollision.min.x + m_attackCollision.max.x) * HALF_SCALE;
+	center.y = m_attackCollision.min.y + SWORD_Z_FIGHTING_OFFSET;
+	center.z = (m_attackCollision.min.z + m_attackCollision.max.z) * HALF_SCALE;
 
 	// 最初のセグメントの頂点を計算
 	DirectX::SimpleMath::Vector3 prevOuter, prevInner;
 
-	// 最初の角度
+	// 外側の最初の頂点
 	prevOuter.x = center.x + radius;
 	prevOuter.y = center.y;
 	prevOuter.z = center.z;
 
+	// 内側の最初の頂点
 	prevInner.x = center.x + innerRadius;
 	prevInner.y = center.y;
 	prevInner.z = center.z;
 
-	for (int i = 1; i <= segments; ++i)
+	// セグメントごとに線を描画
+	for (int i = 1; i <= CIRCLE_SEGMENTS; ++i)
 	{
-		float angle = (float)i * (2.0f * DirectX::XM_PI / (float)segments);
+		// 現在の角度（ラジアン）を計算
+		float angle = (float)i * (FULL_CIRCLE_TURN_RATIO * DirectX::XM_PI / (float)CIRCLE_SEGMENTS);
 		float cosA = cosf(angle);
 		float sinA = sinf(angle);
 
@@ -887,6 +908,7 @@ void Player::SwordRangeCircle()
 			center.z + innerRadius * sinA
 		};
 
+		// トライアングルリスト形式でドーナツ状の四角形を描画
 		m_primitiveBatch->DrawTriangle(
 			{ prevOuter,   lineColor },
 			{ prevInner,   lineColor },

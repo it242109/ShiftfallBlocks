@@ -6,6 +6,8 @@
 #include "pch.h"
 #include "Shadow.h"
 
+// 定数の定義
+const float Shadow::Z_FIGHTING_OFFSET = 0.01f; ///< 地面とのチラつき（Zファイティング）を防ぐための高さオフセット
 
 /*
 * @brief コンストラクタ
@@ -106,10 +108,10 @@ void Shadow::Draw(ID3D11DeviceContext* context, DirectX::CommonStates* states, D
 	};
 
 	// 頂点の位置情報
-	vartexes[0].position = DirectX::SimpleMath::Vector3(-radius, 0.01f, -radius) + position;
-	vartexes[1].position = DirectX::SimpleMath::Vector3(radius, 0.01f, -radius) + position;
-	vartexes[2].position = DirectX::SimpleMath::Vector3(-radius, 0.01f, radius) + position;
-	vartexes[3].position = DirectX::SimpleMath::Vector3(radius, 0.01f, radius) + position;
+	vartexes[0].position = DirectX::SimpleMath::Vector3(-radius, Z_FIGHTING_OFFSET, -radius) + position;
+	vartexes[1].position = DirectX::SimpleMath::Vector3(radius, Z_FIGHTING_OFFSET, -radius) + position;
+	vartexes[2].position = DirectX::SimpleMath::Vector3(-radius, Z_FIGHTING_OFFSET, radius) + position;
+	vartexes[3].position = DirectX::SimpleMath::Vector3(radius, Z_FIGHTING_OFFSET, radius) + position;
 
 	// インデックス番号
 	uint16_t indexes[] = { 2,3,1,2,1,0 };

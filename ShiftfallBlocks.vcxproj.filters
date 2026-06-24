@@ -48,9 +48,6 @@
     <ClInclude Include="Scenes\TitleScene.h">
       <Filter>Scenes</Filter>
     </ClInclude>
-    <ClInclude Include="Scenes\TutorialScene.h">
-      <Filter>Scenes</Filter>
-    </ClInclude>
     <ClInclude Include="SKLib\DebugFont.h">
       <Filter>Library</Filter>
     </ClInclude>
@@ -130,7 +127,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="SKLib\ReadData.h" />
-    <ClInclude Include="GameObjects\Stages\Enemy.h">
+    <ClInclude Include="GameObjects\StageObjects\Enemy.h">
       <Filter>GameObjects\StageObjects</Filter>
     </ClInclude>
     <ClInclude Include="GameObjects\Effects\BackGround.h">
@@ -139,10 +136,7 @@
     <ClInclude Include="GameObjects\Gimmicks\Gate.h">
       <Filter>GameObjects\Gimmicks</Filter>
     </ClInclude>
-    <ClInclude Include="GameObjects\Gimmicks\GimmickBlock.h">
-      <Filter>GameObjects\StageObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObjects\Stages\Goal.h">
+    <ClInclude Include="GameObjects\StageObjects\Goal.h">
       <Filter>GameObjects\StageObjects</Filter>
     </ClInclude>
     <ClInclude Include="GameObjects\Gimmicks\Item.h">
@@ -160,7 +154,7 @@
     <ClInclude Include="GameObjects\Effects\ParticleUtility.h">
       <Filter>GameObjects\Effects</Filter>
     </ClInclude>
-    <ClInclude Include="GameObjects\Stages\StageObject.h">
+    <ClInclude Include="GameObjects\StageObjects\StageObject.h">
       <Filter>GameObjects\StageObjects</Filter>
     </ClInclude>
     <ClInclude Include="GameObjects\Gimmicks\Switch.h">
@@ -172,7 +166,7 @@
     <ClInclude Include="GameObjects\Effects\PortalParticle.h">
       <Filter>GameObjects\Effects</Filter>
     </ClInclude>
-    <ClInclude Include="GameObjects\Stages\Player.h">
+    <ClInclude Include="GameObjects\StageObjects\Player.h">
       <Filter>GameObjects\StageObjects</Filter>
     </ClInclude>
     <ClInclude Include="Scenes\StageScene.h">
@@ -197,15 +191,30 @@
       <Filter>Task</Filter>
     </ClInclude>
     <ClInclude Include="Resources\json.hpp" />
+    <ClInclude Include="GameObjects\TutorialStage.h">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Gimmicks\GimmickBlock.h">
+      <Filter>GameObjects\Gimmicks</Filter>
+    </ClInclude>
+    <ClInclude Include="Scenes\TutorialScene.h">
+      <Filter>Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\BlockPutParticle.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\PlayerDashParticle.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\Effects\CorrectSwitchParticle.h">
+      <Filter>GameObjects\Effects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scenes\TitleScene.cpp">
-      <Filter>Scenes</Filter>
-    </ClCompile>
-    <ClCompile Include="Scenes\TutorialScene.cpp">
       <Filter>Scenes</Filter>
     </ClCompile>
     <ClCompile Include="SKLib\DebugFont.cpp">
@@ -277,7 +286,7 @@
     <ClCompile Include="SKLib\TransitionMask.cpp">
       <Filter>Library</Filter>
     </ClCompile>
-    <ClCompile Include="GameObjects\Stages\Enemy.cpp">
+    <ClCompile Include="GameObjects\StageObjects\Enemy.cpp">
       <Filter>GameObjects\StageObjects</Filter>
     </ClCompile>
     <ClCompile Include="GameObjects\Effects\BackGround.cpp">
@@ -289,7 +298,7 @@
     <ClCompile Include="GameObjects\Gimmicks\GimmickBlock.cpp">
       <Filter>GameObjects\Gimmicks</Filter>
     </ClCompile>
-    <ClCompile Include="GameObjects\Stages\Goal.cpp">
+    <ClCompile Include="GameObjects\StageObjects\Goal.cpp">
       <Filter>GameObjects\StageObjects</Filter>
     </ClCompile>
     <ClCompile Include="GameObjects\Gimmicks\Item.cpp">
@@ -307,7 +316,7 @@
     <ClCompile Include="GameObjects\Effects\ParticleUtility.cpp">
       <Filter>GameObjects\Effects</Filter>
     </ClCompile>
-    <ClCompile Include="GameObjects\Stages\StageObject.cpp">
+    <ClCompile Include="GameObjects\StageObjects\StageObject.cpp">
       <Filter>GameObjects\StageObjects</Filter>
     </ClCompile>
     <ClCompile Include="GameObjects\Gimmicks\Switch.cpp">
@@ -319,7 +328,7 @@
     <ClCompile Include="GameObjects\Effects\PortalParticle.cpp">
       <Filter>GameObjects\Effects</Filter>
     </ClCompile>
-    <ClCompile Include="GameObjects\Stages\Player.cpp">
+    <ClCompile Include="GameObjects\StageObjects\Player.cpp">
       <Filter>GameObjects\StageObjects</Filter>
     </ClCompile>
     <ClCompile Include="Scenes\StageScene.cpp">
@@ -339,6 +348,21 @@
     </ClCompile>
     <ClCompile Include="Task\Number.cpp">
       <Filter>Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\TutorialStage.cpp">
+      <Filter>GameObjects\StageObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="Scenes\TutorialScene.cpp">
+      <Filter>Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\BlockPutParticle.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\PlayerDashParticle.cpp">
+      <Filter>GameObjects\Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjects\Effects\CorrectSwitchParticle.cpp">
+      <Filter>GameObjects\Effects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -372,6 +396,7 @@
     <None Include="Resources\last_times.json">
       <Filter>TimeRecords</Filter>
     </None>
+    <None Include="Resources\stage_list.json" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon.ico">

@@ -1,0 +1,24 @@
+{
+    "STAGES": [
+        {
+            "id": 0,
+            "name": "TUTORIAL",
+            "data": "Resources/Stages/tutorial.json"
+        },
+        {
+            "id": 1,
+            "name": "STAGE_1",
+            "data": "Resources/Stages/stage01.json"
+        },
+        {
+            "id": 2,
+            "name": "STAGE_2",
+            "data": "Resources/Stages/stage02.json"
+        },
+        {
+            "id": 3,
+            "name": "STAGE_3",
+            "data": "Resources/Stages/stage03.json"
+        }
+    ]
+}

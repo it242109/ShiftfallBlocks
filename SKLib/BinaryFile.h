@@ -9,7 +9,7 @@
 
 class BinaryFile
 {
-private:// protected:
+private:
 	// ƒf[ƒ^
 	std::unique_ptr<char[]> m_shaderData;
 

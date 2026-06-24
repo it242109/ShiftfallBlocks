@@ -16,6 +16,10 @@
 #include <CommonStates.h>
 #include <vector>
 
+// 定数の定義
+const float BackGround::TARGET_FRAME_RATE = 144.0f;	///< ターゲットとするフレームレート（144FPS）
+const float BackGround::ONE_SECOND = 1.0f;			///< 1秒の時間基準値
+
 /*
 * @brief　インプットレイアウト
 *
@@ -156,7 +160,7 @@ void BackGround::CreateShader()
 */
 void BackGround::Render()
 {
-	m_time += 1.0f / 144.0f;
+	m_time += ONE_SECOND / TARGET_FRAME_RATE;
 
 	ID3D11DeviceContext1* context = m_pDR->GetD3DDeviceContext();
 

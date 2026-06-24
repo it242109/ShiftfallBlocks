@@ -10,14 +10,19 @@
 StaminaUI staminaUI;
 
 // 表示位置
-const int StaminaUI::STAMINA_X = 50;
-const int StaminaUI::STAMINA_Y = 500;
-
+const int StaminaUI::STAMINA_UI_X = 50;
+const int StaminaUI::STAMINA_UI_Y = 500;
+// 大きさ
+const float StaminaUI::STAMINA_UI_SCALE_X = 1.0f;
+const float StaminaUI::STAMINA_UI_SCALE_Y = 1.0f;
 // 最大数
-const int StaminaUI::STAMINA_MAX = 5;
-
+const int StaminaUI::STAMINA_UI_MAX = 5;
 // 表示間隔
-const float StaminaUI::STAMINA_RANGE = 70.0f;
+const float StaminaUI::STAMINA_UI_RANGE = 70.0f;
+// スタミナが０の場合のしきい値
+const float StaminaUI::STAMINA_UI_ZERO_THRESHOLD = 0.01f;
+// UIアイコン1つあたりに対応するスタミナ量
+const float StaminaUI::STAMINA_UI_PER_VALUE = 10.0f;
 
 /*
 * @brief コンストラクタ
@@ -65,11 +70,11 @@ void StaminaUI::Initialize(DX::DeviceResources* pDR, int width, int height)
     // プレイヤーの参照を渡す
     staminaUI.SetPlayer(m_player); 
 
-    for (int i = 0; i < STAMINA_MAX; i++)
+    for (int i = 0; i < STAMINA_UI_MAX; i++)
     {
         Add(L"Resources/Textures/staminaUI.png"
-            , DirectX::SimpleMath::Vector2(STAMINA_X + STAMINA_RANGE * i, STAMINA_Y)
-            , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+            , DirectX::SimpleMath::Vector2(STAMINA_UI_X + STAMINA_UI_RANGE * i, STAMINA_UI_Y)
+            , DirectX::SimpleMath::Vector2(STAMINA_UI_SCALE_X, STAMINA_UI_SCALE_Y)
             , ANCHOR::TOP_LEFT);
     }
 }
@@ -89,9 +94,9 @@ void StaminaUI::Update()
 
         int targetUILives = 0;
 
-        if (currentStamina > STAMINA_ZERO_THRESHOLD)
+        if (currentStamina > STAMINA_UI_ZERO_THRESHOLD)
         {
-            targetUILives = static_cast<int>(ceilf(currentStamina / 10.0f));
+            targetUILives = static_cast<int>(ceilf(currentStamina / STAMINA_UI_PER_VALUE));
         }
 
         // UIのアイコン数
@@ -188,7 +193,7 @@ int StaminaUI::GetStaminaMax() const
 {
     if (m_player)
         return m_player->GetLives();
-    return STAMINA_MAX;
+    return STAMINA_UI_MAX;
 }
 
 /*
@@ -206,9 +211,9 @@ void StaminaUI::Increase()
     // ターゲットとなるUIの数を再計算
     float currentStamina = m_player->GetStamina();
     int targetUILives = 0;
-    if (currentStamina > STAMINA_ZERO_THRESHOLD)
+    if (currentStamina > STAMINA_UI_ZERO_THRESHOLD)
     {
-        targetUILives = static_cast<int>(ceilf(currentStamina / 10.0f));
+        targetUILives = static_cast<int>(ceilf(currentStamina / STAMINA_UI_PER_VALUE));
     }
     int UIlives = static_cast<int>(m_stamina.size());
 
@@ -219,8 +224,8 @@ void StaminaUI::Increase()
     }
 
     Add(L"Resources/Textures/staminaUI.png"
-        , DirectX::SimpleMath::Vector2(STAMINA_X + STAMINA_RANGE * m_stamina.size(), STAMINA_Y)
-        , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+        , DirectX::SimpleMath::Vector2(STAMINA_UI_X + STAMINA_UI_RANGE * m_stamina.size(), STAMINA_UI_Y)
+        , DirectX::SimpleMath::Vector2(STAMINA_UI_SCALE_X, STAMINA_UI_SCALE_Y)
         , ANCHOR::TOP_LEFT);
 
 	m_state ^= STATE::INCREASE;

@@ -22,7 +22,42 @@ class Menu
 public:
 	unsigned int m_menuIndex;
 	
+public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- 位置 ---
+	// 位置の設定
+	void SetPosition(int index, DirectX::SimpleMath::Vector2 position);
+
+	// --- 大きさ ---
+	// サイズの取得
+	size_t GetSize() const { return m_userInterface.size(); }
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
+	// コンストラクタ／デストラクタ
+	Menu();
+	~Menu();
+
+	// 初期化処理
+	void Initialize(DX::DeviceResources* pDR, int width, int height);
+	// 更新処理
+	void Update();
+	// 描画処理
+	void Render();
+
+	// メニューの追加
+	void Add(const wchar_t* path,
+		DirectX::SimpleMath::Vector2 position,
+		DirectX::SimpleMath::Vector2 scale,
+		ANCHOR anchor
+	);
+
 private:
+	// 定数 ------------------------------------------------------------------------
+	static const float RATE_EXPAND;  ///< 拡大する割合
+
+private:
+	// メンバ変数 ------------------------------------------------------------------
 	// デバイスリソースへのポインタ
 	DX::DeviceResources* m_pDR; 
 
@@ -42,28 +77,5 @@ private:
 	// キーボードの状態トラッカー
 	DirectX::Keyboard::KeyboardStateTracker m_tracker;
 
-public:
-	// コンストラクタ／デストラクタ
-	Menu();
-	~Menu();
-
-	// 初期化処理
-	void Initialize(DX::DeviceResources* pDR, int width, int height);
-	// 更新処理
-	void Update();
-	// 描画処理
-	void Render();
-
-	// メニューの追加
-	void Add(const wchar_t* path,
-		DirectX::SimpleMath::Vector2 position,
-		DirectX::SimpleMath::Vector2 scale,
-		ANCHOR anchor
-	);
-
-	// 位置の設定
-	void SetPosition(int index, DirectX::SimpleMath::Vector2 position);
-	// サイズの取得
-	size_t GetSize() const { return m_userInterface.size(); }
 };
 

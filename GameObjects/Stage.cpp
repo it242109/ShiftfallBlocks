@@ -5,10 +5,10 @@
 //--------------------------------------------------------------------------------------
 #include "pch.h"
 #include "Stage.h"
-#include "Stages/Player.h"
-#include "Stages/Enemy.h"
-#include "Stages/StageObject.h"
-#include "Stages/Goal.h"
+#include "StageObjects/Player.h"
+#include "StageObjects/Enemy.h"
+#include "StageObjects/StageObject.h"
+#include "StageObjects/Goal.h"
 
 #include "Gimmicks/Platform.h"
 #include "Gimmicks/Switch.h"
@@ -17,7 +17,19 @@
 #include "Gimmicks/Item.h"
 #include "Gimmicks/GimmickBlock.h"
 
+// JSONファイルを使えるようにする
 using json = nlohmann::json;
+
+// 定数の定義
+const float Stage::HALF_SCALE = 0.5f;									///< 半分のサイズにする
+const DirectX::SimpleMath::Vector3 Stage::DEFAULT_BLOCK_SCALE(0.7f, 0.7f, 0.7f);	///< 生成するギミックブロックの標準サイズ
+const DirectX::SimpleMath::Vector3 Stage::DEFAULT_SWITCH_SCALE(1.0f, 1.0f, 1.0f);	///< スイッチオブジェクトの標準サイズ
+const DirectX::SimpleMath::Vector3 Stage::BLOCK_FOLLOW_OFFSET(0.0f, 1.0f, 0.0f);	///< ブロック追尾時の高さオフセット
+const int Stage::BLOCK_FOLLOW_SPEED_MULTIPLIER = 5;						///< ブロックの追従速度の倍率
+const float Stage::TELEPORT_DURATION = 2.0f;							///< テレポートの演出・クールダウン時間（秒）
+const float Stage::TIMER_END_THRESHOLD = 0.0f;							///< タイマー終了の基準値
+const DirectX::SimpleMath::Vector3 Stage::WORLD_UP_VECTOR(0, 1, 0);		///< 世界の真上を指す上方向ベクトル
+const float Stage::SELF_HIT_INIT_DIST = 0.1f;							///< レイ発射直後の自分自身への誤判定を防ぐための最小距離
 
 /*
 * @brief コンストラクタ
@@ -150,11 +162,12 @@ void Stage::Load(const std::string& filePath, Player* player, std::function<void
 			}
 
 			// 初期化
-			block->Initialize(targetModel, pos, { 0.7f, 0.7f, 0.7f }, targetType);
+			block->Initialize(targetModel, pos, DEFAULT_BLOCK_SCALE, targetType);
 			m_gimmickBlocks.push_back(block);
 
 			// ITEMタイプならインデックスを保存
-			if (targetType == BlockType::ITEM) {
+			if (targetType == BlockType::ITEM) 
+			{
 				m_itemGimmickBlockIndices.push_back(m_gimmickBlocks.size() - 1);
 			}
 		}
@@ -220,7 +233,8 @@ void Stage::Load(const std::string& filePath, Player* player, std::function<void
 
 	// スイッチの読み込み／各スイッチの追加
 	m_switch->SetModel(m_switchModel.get());
-	if (data.contains("switches")) {
+	if (data.contains("switches"))
+	{
 		for (auto& sw : data["switches"])
 		{
 			DirectX::SimpleMath::Vector3 pos = { sw["position"][0], sw["position"][1], sw["position"][2] };
@@ -255,10 +269,10 @@ void Stage::Load(const std::string& filePath, Player* player, std::function<void
 						size_t gIdx = m_itemGimmickBlockIndices[idx];
 						if (gIdx < m_gimmickBlocks.size()) m_gimmickBlocks[gIdx]->SetIsVisible(false);
 					}
-					};
+				};
 			}
 			// スイッチの追加
-			m_switch->AddSwitch({ pos, {1.0f, 1.0f, 1.0f}, stype, action });
+			m_switch->AddSwitch({ pos, DEFAULT_SWITCH_SCALE, stype, action });
 		}
 	}
 }
@@ -294,35 +308,64 @@ void Stage::Update(float elapsedTime, Player* player,
 	// 仕掛けブロックの更新
 	if (!isTeleporting)
 	{
-		// プレイヤーの速度から追尾速度を計算
-		float blockFollowSpeed = (player->GetVelocity() / elapsedTime) * 5;
+		float blockFollowSpeed =
+			(player->GetVelocity() / elapsedTime) * BLOCK_FOLLOW_SPEED_MULTIPLIER;
 
 		for (auto& block : m_gimmickBlocks)
 		{
-			if (!block) continue;
-			// 衝突判定と持ち上げトグル判断
-			if (block->CheckCollision(player->GetCollision()))
+			if (!block)
+				continue;
+
+			bool isColliding = block->CheckCollision(player->GetCollision());
+
+			if (isColliding && InputManager::Get().IsMousePressedRight())
 			{
-				if (InputManager::Get().IsMousePressedRight())
+				// 持ち上げる
+				if (!block->IsFollowing() && !m_followingBlock)
 				{
-					if (!block->IsFollowing() && !m_followingBlock && !isTeleporting)
+					SoundManager::GetInstance().Play(L"LIFT");
+
+					block->StartFollowing(
+						player->GetPosition(),
+						blockFollowSpeed);
+
+					block->SetFollowOffset(BLOCK_FOLLOW_OFFSET);
+					m_followingBlock = block;
+				}
+				// 置く
+				else if (block->IsFollowing() &&
+					!player->IsJumping() &&
+					player->IsOnFloor())
+				{
+					SoundManager::GetInstance().Play(L"PUT");
+
+					block->StopFollowing(player->GetPosition());
+					m_followingBlock = nullptr;
+
+					if (m_blockPutParticle)
 					{
-						SoundManager::GetInstance().Play(L"LIFT");
-						block->StartFollowing(player->GetPosition(), blockFollowSpeed);
-						block->SetFollowOffset({ 0.0f, 1.0f, 0.0f });
-						m_followingBlock = block;
-					}
-					else if (block->IsFollowing() && !player->IsJumping() && player->IsOnFloor() && !isTeleporting)
-					{
-						SoundManager::GetInstance().Play(L"PUT");
-						block->StopFollowing(player->GetPosition());
-						m_followingBlock = nullptr;
+						blockPutEmitterInfo emitter;
+						emitter.position = block->GetPosition();
+						emitter.scale = block->GetScale();
+
+						m_blockPutParticle->SetEmitters({ emitter });
 					}
 				}
 			}
-			if (block->IsFollowing()) block->UpdateTargetPosition(player->GetPosition());
+
+			if (block->IsFollowing())
+			{
+				block->UpdateTargetPosition(player->GetPosition());
+			}
+
+			// ブロックの更新
 			block->Update(elapsedTime);
 		}
+	}
+	// 置いたときのパーティクルを更新
+	if (m_blockPutParticle)
+	{
+		m_blockPutParticle->Update(elapsedTime);
 	}
 
 	// ギミックの更新処理
@@ -386,6 +429,31 @@ void Stage::Update(float elapsedTime, Player* player,
 		m_switchParticle->SetEmitters(switchEmitterInfos);
 		m_switchParticle->Update(elapsedTime);
 	}
+	// 正しいスイッチに置いたときに出るパーティクル
+	if (m_switch && m_correctSwitchParticle)
+	{
+		std::vector<CorrectSwitchEmitterInfo> correctSwitchEmitterInfos;
+
+		const auto& switches = m_switch->GetSwitches();
+		for (size_t i = 0; i < switches.size(); ++i)
+		{
+			// 条件があっているかをチェック
+			if (m_switch->IsSwitchOn(i))
+			{
+				// 条件が合っているスイッチのデータを取り出す
+				const auto& sw = switches[i];
+
+				CorrectSwitchEmitterInfo info;
+				info.position = sw.position;
+				info.scale = sw.scale;
+
+				// パーティクルの発生源としてリストに追加
+				correctSwitchEmitterInfos.push_back(info);
+			}
+		}
+		m_correctSwitchParticle->SetEmitters(correctSwitchEmitterInfos);
+		m_correctSwitchParticle->Update(elapsedTime);
+	}
 	// ポータルの上に出るパーティクル
 	std::vector<PortalEmitterInfo> portalEmitterInfos;
 	for (const auto& portal : m_portal->GetPortals())
@@ -402,12 +470,12 @@ void Stage::Update(float elapsedTime, Player* player,
 	if (!isTeleporting)
 	{
 		isTeleporting = true;
-		m_teleportTimer = 2.0f;
+		m_teleportTimer = TELEPORT_DURATION;
 	}
 	else
 	{
 		m_teleportTimer -= elapsedTime;
-		if (m_teleportTimer <= 0.0f)
+		if (m_teleportTimer <= TIMER_END_THRESHOLD)
 			isTeleporting = false;
 	}
 }
@@ -476,8 +544,8 @@ void Stage::Render(ID3D11DeviceContext* context, const DirectX::SimpleMath::Matr
 	}
 
 	//　各パーティクル
-	bool portalEnabled = false;
 	// ポータル
+	bool portalEnabled = false;
 	for (bool portalState : m_isSwitchOn_Portal)
 	{
 		if (portalState)
@@ -490,6 +558,11 @@ void Stage::Render(ID3D11DeviceContext* context, const DirectX::SimpleMath::Matr
 
 	// スイッチ
 	m_switchParticle->Render(view, proj);
+
+	// ブロックを置いたときのパーティクル
+	m_blockPutParticle->Render(view, proj);
+	// 正しいスイッチに置いたときに出るパーティクル
+	m_correctSwitchParticle->Render(view, proj);
 }
 
 /*
@@ -563,6 +636,12 @@ void Stage::CreateDeviceDependentResources(ID3D11Device* device, ID3D11DeviceCon
 	m_wall = std::make_unique<StageObject>();
 	m_wall->Initialize(device, L"Resources/Models/wall.sdkmesh");
 
+	// カメラの初期化
+	RECT rect = deviceResources->GetOutputSize();
+	int width = rect.right - rect.left;
+	int height = rect.bottom - rect.top;
+	m_camera = std::make_unique<GameCamera>(width,height);
+
 	// 足場の生成
 	m_platform = std::make_unique<Platform>();
 	m_platform->SetDeviceResources(deviceResources);
@@ -593,6 +672,12 @@ void Stage::CreateDeviceDependentResources(ID3D11Device* device, ID3D11DeviceCon
 	// スイッチ
 	m_switchParticle = std::make_unique<SwitchParticle>();
 	m_switchParticle->Create(deviceResources);
+	// ブロックを置いたときのパーティクル
+	m_blockPutParticle = std::make_unique<BlockPutParticle>();
+	m_blockPutParticle->Create(deviceResources);
+	// 正しいスイッチに置いたときに出るパーティクル
+	m_correctSwitchParticle = std::make_unique<CorrectSwitchParticle>();
+	m_correctSwitchParticle->Create(deviceResources);
 
 	// ゴールの生成
 	m_goal = std::make_shared<Goal>();
@@ -611,8 +696,10 @@ void Stage::CreateDeviceDependentResources(ID3D11Device* device, ID3D11DeviceCon
 void Stage::UpdateBillboard(const DirectX::SimpleMath::Vector3& target, const DirectX::SimpleMath::Vector3& eye)
 {
 	// 各パーティクルのビルボードを更新
-	m_portalParticle->Billboard(target, eye, { 0, 1, 0 });
-	m_switchParticle->Billboard(target, eye, { 0, 1, 0 });
+	m_portalParticle->Billboard(target, eye, WORLD_UP_VECTOR);
+	m_switchParticle->Billboard(target, eye, WORLD_UP_VECTOR);
+	m_blockPutParticle->Billboard(target, eye, WORLD_UP_VECTOR);
+	m_correctSwitchParticle->Billboard(target, eye, WORLD_UP_VECTOR);
 }
 
 /*
@@ -622,7 +709,7 @@ void Stage::UpdateBillboard(const DirectX::SimpleMath::Vector3& target, const Di
 * @param[in]  direction 　レイの方向
 * @param[in]  maxDistance 最大距離
 *
-* @return レイが衝突したオブジェクトまでの距離、衝突しなかった場合は最大距離を返す
+* @return 衝突距離を返す（非衝突時は最大距離）
 */
 float Stage::GetClosestHitDistance(const DirectX::SimpleMath::Vector3& origin, const DirectX::SimpleMath::Vector3& direction, float maxDistance) const
 {
@@ -637,9 +724,9 @@ float Stage::GetClosestHitDistance(const DirectX::SimpleMath::Vector3& origin, c
 		auto& scale = obj->GetScales();
 		for (size_t i = 0; i < pos.size(); ++i)
 		{
-			DirectX::BoundingBox box(pos[i], scale[i] * 0.5f);
+			DirectX::BoundingBox box(pos[i], scale[i] * HALF_SCALE);
 			float d = 0;
-			if (ray.Intersects(box, d) && d > 0.1f && d < closest)
+			if (ray.Intersects(box, d) && d > SELF_HIT_INIT_DIST && d < closest)
 			{
 				closest = d;
 			}

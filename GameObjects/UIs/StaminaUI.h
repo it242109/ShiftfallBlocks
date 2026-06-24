@@ -17,7 +17,7 @@
 #include <vector>
 #include "Keyboard.h"
 
-#include "GameObjects/Stages/Player.h"
+#include "GameObjects/StageObjects/Player.h"
 
 // 前方宣言
 class Player;
@@ -33,26 +33,16 @@ public:
 		INCREASE = 1 << 1,
 	};
 
-private:
-	Player* m_player;
-
-	// 定数
-	const static int STAMINA_X;
-	const static int STAMINA_Y;
-	const static int STAMINA_MAX;
-	const static float STAMINA_RANGE;
-	const float STAMINA_ZERO_THRESHOLD = 0.01f;
-
-	DX::DeviceResources* m_pDR;
-	std::vector <std::unique_ptr<UserInterface>> m_stamina;
-
-	// ウィンドウサイズ
-	int m_windowWidth, m_windowHeight;
-
-	// 状態管理用のビットフラグ
-	byte m_state;
+public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- システム・グラフィックス  ---
+	// プレイヤーのセッター
+	void SetPlayer(Player* player);
+	// 最大値を取得
+	int GetStaminaMax() const;
 
 public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ／デストラクタ
 	StaminaUI();
 	~StaminaUI();
@@ -70,14 +60,34 @@ public:
 		DirectX::SimpleMath::Vector2 scale,
 		ANCHOR anchor);
 
-	// プレイヤーのセッターを追加
-	void SetPlayer(Player* player);
-	// 最大値を取得
-	int GetStaminaMax() const;
-
 	// 増やす処理
 	void Increase();
 	// 減らす処理
 	void Decrease();
+
+private:
+	// 定数 ------------------------------------------------------------------------
+	static const int STAMINA_UI_X;					///< Xの位置
+	static const int STAMINA_UI_Y;					///< Yの位置
+	static const float STAMINA_UI_SCALE_X;			///< Xの大きさ
+	static const float STAMINA_UI_SCALE_Y;			///< Yの大きさ
+	static const int STAMINA_UI_MAX;				///< 最大数
+	static const float STAMINA_UI_RANGE;			///< 表示間隔
+	static const float STAMINA_UI_ZERO_THRESHOLD;	///<スタミナが０の場合のしきい値
+	static const float STAMINA_UI_PER_VALUE;		///< UIアイコン1つあたりに対応するスタミナ量
+
+private:
+	// メンバ変数 ------------------------------------------------------------------
+	// プレイヤーへのポインタ
+	Player* m_player;
+
+	DX::DeviceResources* m_pDR;
+	std::vector <std::unique_ptr<UserInterface>> m_stamina;
+
+	// ウィンドウサイズ
+	int m_windowWidth, m_windowHeight;
+
+	// 状態管理用のビットフラグ
+	byte m_state;
 };
 

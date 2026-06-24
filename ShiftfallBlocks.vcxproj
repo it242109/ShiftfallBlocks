@@ -180,7 +180,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="GameObjects\Effects\BackGround.h" />
+    <ClInclude Include="GameObjects\Effects\BlockPutParticle.h" />
+    <ClInclude Include="GameObjects\Effects\CorrectSwitchParticle.h" />
     <ClInclude Include="GameObjects\Effects\ParticleUtility.h" />
+    <ClInclude Include="GameObjects\Effects\PlayerDashParticle.h" />
     <ClInclude Include="GameObjects\Effects\PortalParticle.h" />
     <ClInclude Include="GameObjects\Effects\Shadow.h" />
     <ClInclude Include="GameObjects\Effects\SwirlParticle.h" />
@@ -192,15 +195,16 @@
     <ClInclude Include="GameObjects\Gimmicks\Portal.h" />
     <ClInclude Include="GameObjects\Gimmicks\Switch.h" />
     <ClInclude Include="GameObjects\Stage.h" />
-    <ClInclude Include="GameObjects\Stages\Enemy.h" />
-    <ClInclude Include="GameObjects\Stages\Goal.h" />
-    <ClInclude Include="GameObjects\Stages\Player.h" />
-    <ClInclude Include="GameObjects\Stages\StageObject.h" />
+    <ClInclude Include="GameObjects\StageObjects\Enemy.h" />
+    <ClInclude Include="GameObjects\StageObjects\Goal.h" />
+    <ClInclude Include="GameObjects\StageObjects\Player.h" />
+    <ClInclude Include="GameObjects\StageObjects\StageObject.h" />
     <ClInclude Include="GameObjects\UIs\HealthUI.h" />
     <ClInclude Include="GameObjects\UIs\Menu.h" />
     <ClInclude Include="GameObjects\UIs\ShieldUI.h" />
     <ClInclude Include="GameObjects\UIs\StaminaUI.h" />
     <ClInclude Include="Resources\json.hpp" />
+    <ClInclude Include="Scenes\TutorialScene.h" />
     <ClInclude Include="SKLib\RenderTexture.h" />
     <ClInclude Include="SKLib\SceneBase.h" />
     <ClInclude Include="SKLib\Camera.h" />
@@ -220,7 +224,6 @@
     <ClInclude Include="SKLib\CollisionManager.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Scenes\TutorialScene.h" />
     <ClInclude Include="Scenes\TitleScene.h" />
     <ClInclude Include="SKLib\DebugFont.h" />
     <ClInclude Include="SKLib\InputManager.h" />
@@ -234,10 +237,14 @@
     <ClInclude Include="Task\SpriteSheet.h" />
     <ClInclude Include="SKLib\TitleCamera.h" />
     <ClInclude Include="SKLib\TutorialManager.h" />
+    <ClInclude Include="GameObjects\TutorialStage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameObjects\Effects\BackGround.cpp" />
+    <ClCompile Include="GameObjects\Effects\BlockPutParticle.cpp" />
+    <ClCompile Include="GameObjects\Effects\CorrectSwitchParticle.cpp" />
     <ClCompile Include="GameObjects\Effects\ParticleUtility.cpp" />
+    <ClCompile Include="GameObjects\Effects\PlayerDashParticle.cpp" />
     <ClCompile Include="GameObjects\Effects\PortalParticle.cpp" />
     <ClCompile Include="GameObjects\Effects\Shadow.cpp" />
     <ClCompile Include="GameObjects\Effects\SwirlParticle.cpp" />
@@ -249,14 +256,15 @@
     <ClCompile Include="GameObjects\Gimmicks\Portal.cpp" />
     <ClCompile Include="GameObjects\Gimmicks\Switch.cpp" />
     <ClCompile Include="GameObjects\Stage.cpp" />
-    <ClCompile Include="GameObjects\Stages\Enemy.cpp" />
-    <ClCompile Include="GameObjects\Stages\Goal.cpp" />
-    <ClCompile Include="GameObjects\Stages\Player.cpp" />
-    <ClCompile Include="GameObjects\Stages\StageObject.cpp" />
+    <ClCompile Include="GameObjects\StageObjects\Enemy.cpp" />
+    <ClCompile Include="GameObjects\StageObjects\Goal.cpp" />
+    <ClCompile Include="GameObjects\StageObjects\Player.cpp" />
+    <ClCompile Include="GameObjects\StageObjects\StageObject.cpp" />
     <ClCompile Include="GameObjects\UIs\HealthUI.cpp" />
     <ClCompile Include="GameObjects\UIs\Menu.cpp" />
     <ClCompile Include="GameObjects\UIs\ShieldUI.cpp" />
     <ClCompile Include="GameObjects\UIs\StaminaUI.cpp" />
+    <ClCompile Include="Scenes\TutorialScene.cpp" />
     <ClCompile Include="SKLib\Camera.cpp" />
     <ClCompile Include="SKLib\DebugDraw.cpp" />
     <ClCompile Include="SKLib\DeviceResources.cpp" />
@@ -279,7 +287,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Scenes\TutorialScene.cpp" />
     <ClCompile Include="Scenes\TitleScene.cpp" />
     <ClCompile Include="SKLib\DebugFont.cpp" />
     <ClCompile Include="SKLib\InputManager.cpp" />
@@ -290,6 +297,7 @@
     <ClCompile Include="SKLib\TitleCamera.cpp" />
     <ClCompile Include="SKLib\TutorialManager.cpp" />
     <ClCompile Include="Task\Number.cpp" />
+    <ClCompile Include="GameObjects\TutorialStage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -301,6 +309,7 @@
     <None Include="packages.config" />
     <None Include="Resources\best_times.json" />
     <None Include="Resources\last_times.json" />
+    <None Include="Resources\stage_list.json" />
     <None Include="Resources\Stages\stage01.json" />
     <None Include="Resources\Stages\stage02.json" />
     <None Include="Resources\Stages\stage03.json" />

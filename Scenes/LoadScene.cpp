@@ -9,6 +9,20 @@
 #include <WICTextureLoader.h>
 #include <SimpleMath.h>
 
+// 定数の定義
+const float LoadScene::GIMMICK_BLOCK_INIT_X = 0.0f;			///< 演出用ブロックの初期X座標
+const float LoadScene::GIMMICK_BLOCK_INIT_Y = 0.8f;			///< 演出用ブロックの初期Y座標
+const float LoadScene::GIMMICK_BLOCK_INIT_Z = 2.0f;			///< 演出用ブロックの初期Z座標
+const float LoadScene::GIMMICK_BLOCK_SCALE = 0.7f;			///< 演出用ブロックの標準の大きさ
+const float LoadScene::CAMERA_UPDATE_SPEED = 2.0f;			///< カメラ更新速度の倍率
+const float LoadScene::DEFAULT_ROTATION_ANGLE = 0.0f;		///< デフォルトの回転角度
+const float LoadScene::DISTAICE_EPSILON_SQUARED = 0.0001f;	///< カメラとターゲットの重複を判定する微小距離の平方
+const float LoadScene::CAMERA_Z_PUSH_OFFSET = 0.1f;			///< 位置重複時にカメラを後ろに押し戻すオフセット量
+const float LoadScene::DEFAULT_SPRITE_ROTATION = 0.0f;		///< 背景スプライトの回転角度
+const float LoadScene::BASE_SPRITE_SCALE = 1.0f;			///< 背景スプライトの基本拡大率
+const float LoadScene::FIELD_OF_VIEW_DEGREES = 45.0f;		///< 視野角
+const float LoadScene::NEAR_PLANE_DISTANCE = 0.1f;			///< カメラの最前面のクリップ距離
+const float LoadScene::FAR_PLANE_DISTANCE = 100.0f;			///< カメラの最遠面のクリップ距離
 
 /*
 * @brief　コンストラクタ
@@ -49,8 +63,8 @@ void LoadScene::Initialize()
 	transitionMask->Open();
 
 	// 仕掛けブロックの初期化
-	m_gimmickBlockPosition = { 0.0f,0.8f,2.0f };
-	m_gimmickBlockScale = { 0.7f,0.7f,0.7f };
+	m_gimmickBlockPosition = { GIMMICK_BLOCK_INIT_X,GIMMICK_BLOCK_INIT_Y,GIMMICK_BLOCK_INIT_Z };
+	m_gimmickBlockScale = { GIMMICK_BLOCK_SCALE,GIMMICK_BLOCK_SCALE,GIMMICK_BLOCK_SCALE };
 	m_gimmickBlockRotate = DirectX::SimpleMath::Quaternion::Identity;
 
 	// カメラの初期化(床に合わせる)
@@ -68,7 +82,7 @@ void LoadScene::Update(float elapsedTime)
 {
 
 	// カメラの更新
-	m_camera.Update(elapsedTime *= 2);
+	m_camera.Update(elapsedTime *= CAMERA_UPDATE_SPEED);
 }
 
 /*
@@ -83,15 +97,15 @@ void LoadScene::Render()
 	auto context = GetUserResources()->GetDeviceResources()->GetD3DDeviceContext();
 	auto states = GetUserResources()->GetCommonStates();
 	// デフォルトのマトリックス
-	DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(0.0f);
+	DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(DEFAULT_ROTATION_ANGLE);
 
 	// カメラの位置とターゲットを取得
 	auto eye = m_camera.GetEyePosition();
 	const auto& target = m_camera.GetTargetPosition();
 
-	if (DirectX::SimpleMath::Vector3::DistanceSquared(eye, target) < 0.0001f)
+	if (DirectX::SimpleMath::Vector3::DistanceSquared(eye, target) < DISTAICE_EPSILON_SQUARED)
 	{
-		eye.z -= 0.1f;
+		eye.z -= CAMERA_Z_PUSH_OFFSET;
 	}
 
 	// ビューを回るカメラに固定
@@ -105,8 +119,8 @@ void LoadScene::Render()
 
 	//　背景の描画
 	m_spriteBatch->Draw(m_loadingSRV.Get(), ScreenManager::Pos(0.0f, 0.0f), nullptr,
-		DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-		ScreenManager::Scale(1.0f, 1.0f));
+		DirectX::Colors::White, DEFAULT_SPRITE_ROTATION, DirectX::SimpleMath::Vector2::Zero,
+		ScreenManager::Scale(BASE_SPRITE_SCALE, BASE_SPRITE_SCALE));
 
 	m_spriteBatch->End();
 
@@ -171,10 +185,10 @@ void LoadScene::CreateWindowSizeDependentResources()
 	float aspectRatio = static_cast<float>(outputSize.right) / static_cast<float>(outputSize.bottom);
 
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		aspectRatio,
-		0.1f,
-		100.0f
+		NEAR_PLANE_DISTANCE,
+		FAR_PLANE_DISTANCE
 	);
 }
 

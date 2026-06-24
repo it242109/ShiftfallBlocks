@@ -6,6 +6,14 @@
 #include "pch.h"
 #include "Item.h"
 
+// 定数の定義
+const DirectX::SimpleMath::Vector3 Item::DEFAULT_SCALE(1.0f, 1.0f, 1.0f);///< デフォルトの大きさ
+const int Item::ITEM_COUNT_SWORD = 3;				///< 剣の使用回数
+const int Item::ITEM_COUNT_SHIELD = 3;				///< 盾の使用回数
+const float Item::FIELD_OF_VIEW_DEGREES = 45.0f;	///< 視野角
+const float Item::NEAR_PLANE_DISTANCE = 0.1f;		///< カメラの最前面のクリップ距離
+const float Item::FAR_PLANE_DISTANCE = 100.0f;		///< カメラの最遠面のクリップ距離
+
 /*
 * @brief 初期化処理
 *
@@ -33,7 +41,7 @@ void Item::AddItem(const DirectX::SimpleMath::Vector3& position, ItemType type)
 {
 	ItemData newItem;
 	newItem.position = position;
-	newItem.scale = { 1.0f,1.0f,1.0f };
+	newItem.scale = DEFAULT_SCALE;
 	newItem.itemType = type;
 	newItem.isActive = true;
 
@@ -44,13 +52,13 @@ void Item::AddItem(const DirectX::SimpleMath::Vector3& position, ItemType type)
 			case ItemType::SWORD:
 
 				// 剣を拾ったときの効果
-				p->AddAttack(3);
+				p->AddAttack(ITEM_COUNT_SWORD);
 				break;
 
 			case ItemType::SHIELD:
 
 				// 盾を拾ったときの効果
-				p->AddDefence(3);
+				p->AddDefence(ITEM_COUNT_SHIELD);
 				break;
 
 			default:
@@ -181,9 +189,9 @@ void Item::CreateDeviceDependentResources()
 	// 射影行列の作成
 	RECT rect = m_deviceResources->GetOutputSize();
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
-		0.1f, 100.0f
+		NEAR_PLANE_DISTANCE, FAR_PLANE_DISTANCE
 	);
 }
 

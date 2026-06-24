@@ -20,7 +20,6 @@
 #include "SpriteBatch.h"
 #include "SpriteFont.h"
 
-
 class DebugFont
 {
 private:
@@ -44,8 +43,7 @@ private:
 	// 表示文字列の配列
 	std::vector<String> m_strings;
 
-public:// protected:
-
+public:
 	// スプライトバッチ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 

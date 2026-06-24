@@ -20,11 +20,33 @@ public:
 		DirectX::SimpleMath::Vector4	Diffuse;
 		DirectX::SimpleMath::Vector4	time;
 	};
+public:
+	// 関数 ------------------------------------------------------------
+	// インプットレイアウト	
+	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;
+
+	// コンストラクタ／デストラクタ
+	SwirlParticle();
+	~SwirlParticle();
+
+	// テクスチャリソース読み込み関数
+	void LoadTexture(const wchar_t* path);
+	// 生成関数
+	void Create(DX::DeviceResources* pDR);
+	// 更新処理
+	void Update(float deltaTime);
+	// 描画処理
+	void Render();
 
 private:
+	// シェーダー作成部分だけ分離した関数
+	void CreateShader();
+private:
+	// メンバ変数 -----------------------------------------------------
 	// デバイスリソースへのポインタ
 	DX::DeviceResources* m_pDR;
 
+	// バッファ
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	m_CBuffer;
 
 	//	入力レイアウト
@@ -52,27 +74,7 @@ private:
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
 
+	// １フレーム当たりのタイム
 	float m_time;
-
-public:
-	//	関数
-	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;
-
-	// コンストラクタ／デストラクタ
-	SwirlParticle();
-	~SwirlParticle();
-
-	// テクスチャリソース読み込み関数
-	void LoadTexture(const wchar_t* path);
-	// 生成関数
-	void Create(DX::DeviceResources* pDR);
-	// 更新処理
-	void Update(float deltaTime);
-	// 描画処理
-	void Render();
-
-private:
-	// シェーダー作成部分だけ分離した関数
-	void CreateShader();
 };
 

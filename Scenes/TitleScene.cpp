@@ -7,7 +7,27 @@
 #include "TitleScene.h"
 #include "SelectScene.h"
 #include "LoadScene.h"
-#include "TutorialScene.h"
+
+// 定数の定義
+const DirectX::SimpleMath::Vector3 TitleScene::TITLE_PLAYER_POSITION = { 0.0f,1.0f,-2.0f };	///< タイトルシーンのプレイヤーの位置
+const DirectX::SimpleMath::Vector3 TitleScene::TITLE_PLAYER_SCALE = { 1.0f,1.5f,1.0f };		///< タイトルシーンのプレイヤーの大きさ
+const DirectX::SimpleMath::Vector3 TitleScene::GIMMICKBLOCK_POSITION = { 0.0f,0.8f,2.0f };	///< 仕掛けブロックの位置
+const DirectX::SimpleMath::Vector3 TitleScene::GIMMICKBLOCK_SCALE = { 0.7f,0.7f,0.7f };		///< 仕掛けブロックの大きさ
+const DirectX::SimpleMath::Vector3 TitleScene::FLOOR_POSITION = { 0.0f,0.0f,0.0f };			///< 床の位置
+const DirectX::SimpleMath::Vector3 TitleScene::FLOOR_SCALE = { 20.0f,1.0f,20.0f };			///< 床の大きさ
+
+const float TitleScene::WALL_OFFSET_DIST = 15.0f;	///<　壁オブジェクトの中心からの距離
+const float TitleScene::WALL_THICKNESS = 10.0f;		///< 壁の厚み
+const float TitleScene::WALL_HEIGHT = 30.0f;		///< 壁の高さ
+const float TitleScene::WALL_LENGTH = 20.0f;		///< 壁の長さ
+
+const float TitleScene::MENU_DEFAULT_POSITION_X = 1000.0f;	///< メニューのデフォルトの位置X
+const float TitleScene::MENU_DEFAULT_SCALE_X = 0.8f;		///< メニューのデフォルトの大きさX
+const float TitleScene::MENU_DEFAULT_SCALE_Y = 0.8f;		///< メニューのデフォルトの大きさY
+
+const float TitleScene::FIELD_OF_VIEW_DEGREES = 45.0f;	///< 視野角
+const float TitleScene::NEAR_PLANE_DISTANCE = 0.1f;		///< カメラの最前面のクリップ距離
+const float TitleScene::FAR_PLANE_DISTANCE = 100.0f;	///< カメラの最遠面のクリップ距離
 
 /*
 * @brief コンストラクタ
@@ -52,16 +72,16 @@ void TitleScene::Initialize()
 	transitionMask->Open();
 
 	// プレイヤーの初期化
-	m_playerPosition = { 0.0f,1.0f,-2.0f };
-	m_playerScale = { 1.0f,1.5f,1.0f };
+	m_playerPosition = TITLE_PLAYER_POSITION;
+	m_playerScale = TITLE_PLAYER_SCALE;
 
 	// 仕掛けブロックの初期化
-	m_gimmickBlockPosition = { 0.0f,0.8f,2.0f };
-	m_gimmickBlockScale = { 0.7f,0.7f,0.7f };
+	m_gimmickBlockPosition = GIMMICKBLOCK_POSITION;
+	m_gimmickBlockScale = GIMMICKBLOCK_SCALE;
 
 	// 床の初期化
-	m_floorPosition = { 0.0f,0.0f,0.0f };
-	m_floorScale = { 20.0f,1.0f,20.0f };
+	m_floorPosition = FLOOR_POSITION;
+	m_floorScale = FLOOR_SCALE;
 	m_floorRotate = DirectX::SimpleMath::Quaternion::Identity;
 
 	// 壁の初期化
@@ -69,17 +89,17 @@ void TitleScene::Initialize()
 	m_wallScales.clear();
 	m_wallPositions =
 	{
-		{-15.0f,0.0f,0.0f},
-		{15.0f,0.0f,0.0f},
-		{0.0f,0.0f,-15.0f},
-		{0.0f,0.0f,15.0f}
+		{-WALL_OFFSET_DIST,0.0f,0.0f},
+		{WALL_OFFSET_DIST,0.0f,0.0f},
+		{0.0f,0.0f,-WALL_OFFSET_DIST},
+		{0.0f,0.0f,WALL_OFFSET_DIST}
 	};
 	m_wallScales =
 	{
-		{10.0f,30.0f,20.0f},
-		{10.0f,30.0f,20.0f},
-		{20.0f,30.0f,10.0f},
-		{20.0f,30.0f,10.0f}
+		{WALL_THICKNESS,WALL_HEIGHT,WALL_LENGTH},
+		{WALL_THICKNESS,WALL_HEIGHT,WALL_LENGTH},
+		{WALL_LENGTH,WALL_HEIGHT,WALL_THICKNESS},
+		{WALL_LENGTH,WALL_HEIGHT,WALL_THICKNESS}
 	};
 
 	// カメラの初期化(床に合わせる)
@@ -87,13 +107,12 @@ void TitleScene::Initialize()
 
 	// メニューの初期化
 	m_titleMenu->Add(L"Resources/Textures/start.png"
-		, ScreenManager::Pos(1000.0f, 350.0f)
-		, ScreenManager::Scale(0.8f, 0.8f)
+		, ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 350.0f)
+		, ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
-
 	m_titleMenu->Add(L"Resources/Textures/exit.png"
-		, ScreenManager::Pos(1000.0f,550.0f)
-		, ScreenManager::Scale(0.8f,0.8f)
+		, ScreenManager::Pos(MENU_DEFAULT_POSITION_X,550.0f)
+		, ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)
 		, ANCHOR::MIDDLE_CENTER);
 }
 
@@ -148,7 +167,6 @@ void TitleScene::Update(float elapsedTime)
 	// フェードアウト完了後にセレクトシーンへ遷移
 	if (m_isClosing && transitionMask->IsEnd())
 	{
-		//m_isClosing = false;
 		ChangeScene<SelectScene>();
 		return;
 	}
@@ -309,10 +327,10 @@ void TitleScene::CreateWindowSizeDependentResources()
 	}
 
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		aspectRatio,
-		0.1f,                            
-		100.0f                            
+		NEAR_PLANE_DISTANCE,
+		FAR_PLANE_DISTANCE
 	);
 }
 

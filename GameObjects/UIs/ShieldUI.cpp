@@ -11,10 +11,11 @@ ShieldUI shieldUI;
 // ï\é¶à íu
 const int ShieldUI::SHIELD_UI_X = 1100;
 const int ShieldUI::SHIELD_UI_Y = 600;
-
+// ëÂÇ´Ç≥
+const float ShieldUI::SHIELD_UI_SCALE_X = 1.0f;
+const float ShieldUI::SHIELD_UI_SCALE_Y = 1.0f;
 // ç≈ëÂêî
 const int ShieldUI::SHIELD_UI_MAX = 3;
-
 // ï\é¶ä‘äu
 const float ShieldUI::SHIELD_UI_RANGE = 90.0f;
 
@@ -67,7 +68,7 @@ void ShieldUI::Initialize(DX::DeviceResources* pDR, int width, int height)
     {
         Add(L"Resources/Textures/shieldUI.png"
             , DirectX::SimpleMath::Vector2(SHIELD_UI_X - SHIELD_UI_RANGE * i, SHIELD_UI_Y)
-            , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+            , DirectX::SimpleMath::Vector2(SHIELD_UI_SCALE_X, SHIELD_UI_SCALE_Y)
             , ANCHOR::TOP_LEFT);
     }
 }
@@ -203,7 +204,7 @@ void ShieldUI::Increase()
 
     Add(L"Resources/Textures/shieldUI.png"
         , DirectX::SimpleMath::Vector2(SHIELD_UI_X - SHIELD_UI_RANGE * m_shield_UI.size(), SHIELD_UI_Y)
-        , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+        , DirectX::SimpleMath::Vector2(SHIELD_UI_SCALE_X, SHIELD_UI_SCALE_Y)
         , ANCHOR::TOP_LEFT);
 
     m_state ^= STATE::INCREASED;

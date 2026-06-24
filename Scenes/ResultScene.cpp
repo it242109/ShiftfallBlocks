@@ -16,6 +16,13 @@ float ResultScene::s_currentClearTime = 0.0f;
 const std::string LASTTIME_FILENAME = "Resources/last_times.json";
 const std::string BESTTIME_FILENAME = "Resources/best_times.json";
 
+// 定数の定義
+const int ResultScene::SECONDS_IN_HOUR = 3600;		///< １時間あたりの秒数
+const int ResultScene::SECONDS_IN_MIN = 60;			///< １分あたりの秒数
+const int ResultScene::PAD_WIDTH = 2;				///< 桁そろえの文字幅
+const int ResultScene::LOG_COMUMN_WIDTH = 4;		///< 出力時の桁数指定（4ケタ）
+const float ResultScene::PARSE_ERROR_FALLBACK = 0.0f;///< 解析失敗時のフォールバック値
+
 /*
 * @brief 文字列に変換
 *
@@ -86,23 +93,6 @@ void ResultScene::Initialize()
 
 	CreateDeviceDependentResources();
 	CreateWindowSizeDependentResources();
-	
-	switch (m_result)
-	{
-		case ResultType::CLEAR:
-		{
-			SoundManager::GetInstance().Play(L"CLEAR");
-			break;
-		}
-		case ResultType::GAMEOVER:
-		{
-			SoundManager::GetInstance().Play(L"GAMEOVER");
-			break;
-		}
-	}
-
-	// クリアタイムの初期化
-	s_currentClearTime = 0.0f;
 
 	// メニューの初期化
 	m_menu->m_menuIndex = 0;
@@ -353,7 +343,7 @@ void ResultScene::Render()
 		case ResultType::GAMEOVER:
 		{
 			m_spriteBatch->Begin();
-			m_spriteBatch->Draw(m_gameoverFont.Get(), ScreenManager::Pos(400.0f, 130.0f), nullptr,
+			m_spriteBatch->Draw(m_gameoverFont.Get(), ScreenManager::Pos(270.0f, 130.0f), nullptr,
 				DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
 				ScreenManager::Scale(1.0f, 1.0f));
 			m_spriteBatch->Draw(m_selectKey.Get(), ScreenManager::Pos(40.0f, 640.0f), nullptr,
@@ -396,15 +386,15 @@ std::string ResultScene::FormatTimeHMS(float timeSec)
 	int total = static_cast<int>(timeSec);
 
 	// 時間、分、秒を計算
-	int hours = total / 3600;
-	int minutes = (total % 3600) / 60;
-	int seconds = total % 60;
+	int hours = total / SECONDS_IN_HOUR;
+	int minutes = (total % SECONDS_IN_HOUR) / SECONDS_IN_MIN;
+	int seconds = total % SECONDS_IN_MIN;
 
 	// "hh:mm:ss"形式の文字列を作成
 	std::ostringstream oss;
-	oss << std::setw(2) << std::setfill('0') << hours << ":"
-		<< std::setw(2) << std::setfill('0') << minutes << ":"
-		<< std::setw(2) << std::setfill('0') << seconds;
+	oss << std::setw(PAD_WIDTH) << std::setfill('0') << hours << ":"
+		<< std::setw(PAD_WIDTH) << std::setfill('0') << minutes << ":"
+		<< std::setw(PAD_WIDTH) << std::setfill('0') << seconds;
 
 	return oss.str();
 }
@@ -426,10 +416,10 @@ float ResultScene::ParseTimeHMS(const std::string& timeStr)
 	std::istringstream iss(timeStr);
 	iss >> h >> c1 >> m >> c2 >> s;
 
-	// 解析できなかった場合は０を返す
-	if (iss.fail()) return 0.0f;
+	// 解析できなかった場合
+	if (iss.fail()) return PARSE_ERROR_FALLBACK;
 
-	return static_cast<float>(h * 3600 + m * 60 + s);
+	return static_cast<float>(h * SECONDS_IN_HOUR + m * SECONDS_IN_MIN + s);
 }
 
 /*
@@ -441,6 +431,10 @@ float ResultScene::ParseTimeHMS(const std::string& timeStr)
 */
 void ResultScene::UpdateLastTime() const
 {
+	// ステージ名のキーを取得
+	std::string key = StageEnumToString(m_stage);
+	OutputDebugStringA(("Stage Key = " + key + "\n").c_str());
+
 	// 現在のセーブデータを読み込む
 	json j;
 	std::ifstream i(LASTTIME_FILENAME);
@@ -457,16 +451,13 @@ void ResultScene::UpdateLastTime() const
 	}
 	i.close();
 
-	// ステージ名を取得
-	std::string key = StageEnumToString(m_stage);
-
 	// 比較無しで更新
 	if (s_currentClearTime > 0.0f)
 	{
 		j[key] = FormatTimeHMS(s_currentClearTime);
 
 		std::ofstream o(LASTTIME_FILENAME);
-		o << std::setw(4) << j << std::endl;
+		o << std::setw(LOG_COMUMN_WIDTH) << j << std::endl;
 	}
 
 }
@@ -515,7 +506,7 @@ void ResultScene::UpdateBestTime() const
 		j[key] = FormatTimeHMS(s_currentClearTime);
 
 		std::ofstream o(BESTTIME_FILENAME);
-		o << std::setw(4) << j << std::endl;
+		o << std::setw(LOG_COMUMN_WIDTH) << j << std::endl;
 	}
 }
 
@@ -529,7 +520,7 @@ void ResultScene::UpdateBestTime() const
 float ResultScene::GetLastTimeFronJson(ResultStage stage)
 {
 	std::ifstream i(LASTTIME_FILENAME);
-	if (!i.is_open()) return 0.0f;
+	if (!i.is_open()) return PARSE_ERROR_FALLBACK;
 
 	json j;
 	try
@@ -538,7 +529,7 @@ float ResultScene::GetLastTimeFronJson(ResultStage stage)
 	}
 	catch (...)
 	{
-		return 0.0f;
+		return PARSE_ERROR_FALLBACK;
 	}
 	std::string key = StageEnumToString(stage);
 
@@ -547,7 +538,7 @@ float ResultScene::GetLastTimeFronJson(ResultStage stage)
 	{
 		return ParseTimeHMS(j[key].get<std::string>());
 	}
-	return 0.0f;
+	return PARSE_ERROR_FALLBACK;
 }
 
 /*
@@ -560,8 +551,8 @@ float ResultScene::GetLastTimeFronJson(ResultStage stage)
 float ResultScene::GetBestTimeFromJson(ResultStage stage)
 {
 	std::ifstream i(BESTTIME_FILENAME);
-	// ファイルがない場合は０を返す
-	if (!i.is_open()) return 0.0f; 
+	// ファイルがない場合
+	if (!i.is_open()) return PARSE_ERROR_FALLBACK;
 
 	json j;
 	try
@@ -570,7 +561,7 @@ float ResultScene::GetBestTimeFromJson(ResultStage stage)
 	}
 	catch (...)
 	{
-		return 0.0f;
+		return PARSE_ERROR_FALLBACK;
 	}
 	std::string key = StageEnumToString(stage);
 
@@ -579,7 +570,7 @@ float ResultScene::GetBestTimeFromJson(ResultStage stage)
 	{
 		return ParseTimeHMS(j[key].get<std::string>());
 	}
-	return 0.0f;
+	return PARSE_ERROR_FALLBACK;
 }
 
 /*

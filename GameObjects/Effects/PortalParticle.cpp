@@ -18,6 +18,17 @@
 #include <random>
 #include <DirectXMath.h>
 
+// 定数の定義
+const float PortalParticle::EMITTER_RANGE_SCALE = 0.4f;			///< エミッタ―の範囲をどれくらいにするか
+const int PortalParticle::PARTICLE_COUNT = 2;					///< パーティクルの数
+const float PortalParticle::MIN_SPARN_RADIUS = 0.0f;			///< パーティクルの最小半径
+const float PortalParticle::MAX_SPARN_RADIUS = 1.0f;			///< パーティクルの最大半径
+const float PortalParticle::VELOCITY_HORIZONTAL_WEIGHT = 0.5f;	///< 横方向の速度の勢い
+const float PortalParticle::VELOCITY_UPWARD_BASE = 0.5f;		///< 上方向の基本速度
+const float PortalParticle::VELOCITY_SPEED_MIN = 1.0f;			///< 最小初速倍率
+const float PortalParticle::VELOCITY_SPEED_MAX = 3.0f;			///< 最大初速倍率
+const float PortalParticle::PARTICLE_LIFETIME = 1.0f;			///< 生存時間（秒）
+
 /*
 * @brief　インプットレイアウト
 *
@@ -124,7 +135,7 @@ float PortalParticle::RandomFloat(float min, float max)
 /*
 * @brief　更新処理
 *
-* @param[in]  timer Game等からStepTimerを受け取る
+* @param[in] elapsedTime 前フレームからの経過時間
 * 
 * @return なし
 */
@@ -142,10 +153,10 @@ void PortalParticle::Update(float elapsedTime)
 		for (const auto& emitter : m_emitters)
 		{
 			// 発生範囲の設定
-			float rangeX = emitter.scale.x * 0.4f;
-			float rangeZ = emitter.scale.z * 0.4f;
+			float rangeX = emitter.scale.x * EMITTER_RANGE_SCALE;
+			float rangeZ = emitter.scale.z * EMITTER_RANGE_SCALE;
 			// パーティクルの集合体を生成
-			const int particleCount = 2;	// 一度に生成するパーティクルの数
+			const int particleCount = PARTICLE_COUNT;	// 一度に生成するパーティクルの数
 
 			for (int i = 0; i < particleCount; ++i)
 			{
@@ -153,13 +164,13 @@ void PortalParticle::Update(float elapsedTime)
 				float angle = static_cast<float>(dist(engine));
 
 				// ランダムな半径
-				float radius = RandomFloat(0.0f, 1.0f);
+				float radius = RandomFloat(MIN_SPARN_RADIUS, MAX_SPARN_RADIUS);
 
 				// XZ平面上のランダムな位置
 				float offsetX = radius * rangeX * cosf(angle);
 				float offsetZ = radius * rangeZ * sinf(angle);
 
-				float spawnY = emitter.position.y + (emitter.scale.y * 0.5f);
+				float spawnY = emitter.position.y + (emitter.scale.y * VELOCITY_HORIZONTAL_WEIGHT);
 
 				// 基準座標（中心からのオフセット位置）
 				DirectX::SimpleMath::Vector3 position(
@@ -169,15 +180,15 @@ void PortalParticle::Update(float elapsedTime)
 				);
 
 				// 放射方向（XZ平面に少しYを足す）
-				DirectX::SimpleMath::Vector3 velocity(offsetX, 0.5f, offsetZ);
+				DirectX::SimpleMath::Vector3 velocity(offsetX, VELOCITY_UPWARD_BASE, offsetZ);
 				velocity.Normalize();
-				velocity *= RandomFloat(1.0f, 3.0f); // 大きさランダム
+				velocity *= RandomFloat(VELOCITY_SPEED_MIN, VELOCITY_SPEED_MAX); // 大きさランダム
 
 				// パーティクル作成
 				ParticleUtility pU(
-					1.0f,                                       // 生存時間
-					position,                                   // 指定位置から放射
-					velocity,                                   // 放射方向
+					PARTICLE_LIFETIME,                         // 生存時間
+					position,                                  // 指定位置から放射
+					velocity,                                  // 放射方向
 					DirectX::SimpleMath::Vector3::Zero,        // 加速度
 					DirectX::SimpleMath::Vector3::One,         // 初期スケール
 					DirectX::SimpleMath::Vector3::Zero,        // 最終スケール

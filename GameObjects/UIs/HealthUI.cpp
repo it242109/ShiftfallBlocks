@@ -9,14 +9,15 @@
 HealthUI healthUI;
 
 // 表示位置
-const int HealthUI::HEALTH_X = 50;
-const int HealthUI::HEALTH_Y = 600;
-
+const int HealthUI::HEALTH_UI_X = 50;
+const int HealthUI::HEALTH_UI_Y = 600;
+// 大きさ
+const float HealthUI::HEALTH_UI_SCALE_X = 1.0f;
+const float HealthUI::HEALTH_UI_SCALE_Y = 1.0f;
 // 最大数
-const int HealthUI::HEALTH_MAX = 5;
-
+const int HealthUI::HEALTH_UI_MAX = 5;
 // 表示間隔
-const float HealthUI::HEALTH_RANGE = 90.0F;
+const float HealthUI::HEALTH_UI_RANGE = 90.0f;
 
 /*
 * @brief コンストラクタ
@@ -64,11 +65,11 @@ void HealthUI::Initialize(DX::DeviceResources* pDR, int width, int height)
     // プレイヤーの参照を渡す
     healthUI.SetPlayer(m_player); 
 
-    for (int i = 0; i < HEALTH_MAX; i++)
+    for (int i = 0; i < HEALTH_UI_MAX; i++)
     {
         Add(L"Resources/Textures/health.png"
-            , DirectX::SimpleMath::Vector2(HEALTH_X + HEALTH_RANGE * i, HEALTH_Y)
-            , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+            , DirectX::SimpleMath::Vector2(HEALTH_UI_X + HEALTH_UI_RANGE * i, HEALTH_UI_Y)
+            , DirectX::SimpleMath::Vector2(HEALTH_UI_SCALE_X, HEALTH_UI_SCALE_Y)
             , ANCHOR::TOP_LEFT);
     }
 }
@@ -179,7 +180,7 @@ int HealthUI::GetHealthMax() const
 {
     if(m_player)
         return m_player->GetLives();
-    return HEALTH_MAX;
+    return HEALTH_UI_MAX;
 }
 
 /*
@@ -204,8 +205,8 @@ void HealthUI::Increase()
     }
 
     Add(L"Resources/Textures/health.png"
-        , DirectX::SimpleMath::Vector2(HEALTH_X + HEALTH_RANGE * m_health.size(), HEALTH_Y)
-        , DirectX::SimpleMath::Vector2(1.0f, 1.0f)
+        , DirectX::SimpleMath::Vector2(HEALTH_UI_X + HEALTH_UI_RANGE * m_health.size(), HEALTH_UI_Y)
+        , DirectX::SimpleMath::Vector2(HEALTH_UI_SCALE_X, HEALTH_UI_SCALE_Y)
         , ANCHOR::TOP_LEFT);
 
 	m_state ^= STATE::RECOVERY;
