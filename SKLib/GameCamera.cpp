@@ -10,6 +10,24 @@
 #include <DirectXCollision.h>
 #include "InputManager.h"
 
+// 定数の定義
+const float GameCamera::HALF_DIVIDER = 2.0f;			///< 画面中心を求めるための除算値
+const float GameCamera::MOUSE_SENSITIVITY = 0.00095f;	///< マウス感度
+const float GameCamera::MOUSE_ROTATION_LIMIT = 0.01f;	///< 縦回転（ピッチ）を制限するための係数
+const float GameCamera::SCROLL_SENSITIVITY = 0.1f;		///< マウスホイールのスクロール感度
+const float GameCamera::MIN_SCROLL_RANGE = 1.0f;		///< 攻撃範囲（スクロール値）の最小値
+const float GameCamera::MAX_SCROLL_RANGE = 20.0f;		///< 攻撃範囲（スクロール値）の最大値
+
+const float GameCamera::FIXED_CAMERA_DISTANCE = 5.0f;	///< 非追従モード時のプレイヤーからの固定距離
+const float GameCamera::FOLLOW_CAMERA_DISTANCE = 5.0f;	///< 追従モード時の基本カメラ距離
+const float GameCamera::FOLLOW_CAMERA_HEIGHT = 2.0f;	///< 追従モード時の基本カメラの高さ
+const float GameCamera::MIN_CAMERA_RAY_DISTANCE = 1.0f;	///< 壁に作られた際の最小カメラ距離
+
+const float GameCamera::TARGET_HEIGHT_OFFSET = 1.2f;	///< カメラが注視するプレイヤーの高さ
+const float GameCamera::RAY_ORIGIN_HEIGHT_OFFSET = 1.5f;///< 壁判定用レイを発射するプレイヤーの高さ基準
+const float GameCamera::WALL_SAFETY_BUFFER = 0.3f;		///< カメラが壁にめり込まないように手前に戻すバッファ距離
+const float GameCamera::CAMERA_PITCH_LIMIT_RATIO = 0.9f;///< カメラの最大見上げ・見下ろし角を限界の手前に抑えるための制限比率
+
 /*
 * @brief コンストラクタ
 * 
@@ -59,15 +77,15 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 	HWND hWnd = GetActiveWindow();
 	if (hWnd && GetForegroundWindow() == hWnd && state.positionMode != DirectX::Mouse::MODE_RELATIVE)
 	{
-		float centerX = m_screenW / 2.0f;
-		float centerY = m_screenH / 2.0f;
+		float centerX = m_screenW / HALF_DIVIDER;
+		float centerY = m_screenH / HALF_DIVIDER;
 
 		// 回転角度の更新
 		m_yAngle += ((float)state.x - centerX) * MOUSE_SENSITIVITY;
 		m_xAngle += ((float)state.y - centerY) * MOUSE_SENSITIVITY;
 
 		// 縦回転制限
-		m_xAngle = std::max(-DirectX::XM_PIDIV2 * 0.01f, std::min(DirectX::XM_PIDIV2 * 0.01f, m_xAngle));
+		m_xAngle = std::max(-DirectX::XM_PIDIV2 * MOUSE_ROTATION_LIMIT, std::min(DirectX::XM_PIDIV2 * MOUSE_ROTATION_LIMIT, m_xAngle));
 
 		// 角度正規化
 		m_yAngle = fmodf(m_yAngle, DirectX::XM_2PI);
@@ -86,12 +104,12 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 	m_lastWheelValue = currentWheel;
 	if (wheelDelta != 0) 
 	{
-		m_scrollData += (float)wheelDelta * 0.1f;
-		m_scrollData = std::max(1.0f, std::min(20.0f, m_scrollData));
+		m_scrollData += (float)wheelDelta * SCROLL_SENSITIVITY;
+		m_scrollData = std::max(MIN_SCROLL_RANGE, std::min(MAX_SCROLL_RANGE, m_scrollData));
 	}
 
 	// 座標計算
-	DirectX::SimpleMath::Vector3 up = { 0, 1, 0 };
+	DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
 	// プレイヤーからカメラまでの距離を固定
 	const float fixedCameraDist = 5.0f;
 
@@ -102,13 +120,11 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 		// プレイヤーからの高さの設定
 		const float cameraHeight = 2.0;
 
-		m_target = playerPos + DirectX::SimpleMath::Vector3(0, 1.2f, 0);
+		m_target = playerPos + DirectX::SimpleMath::Vector3(0.0f, TARGET_HEIGHT_OFFSET, 0.0f);
 		// レイの開始点
-		DirectX::SimpleMath::Vector3 rayOrigin = playerPos + DirectX::SimpleMath::Vector3(0, 1.5f, 0);
-
+		DirectX::SimpleMath::Vector3 rayOrigin = playerPos + DirectX::SimpleMath::Vector3(0.0f, RAY_ORIGIN_HEIGHT_OFFSET, 0.0f);
 		// ベクトルの作成
-		DirectX::SimpleMath::Vector3 baseOffset(0, cameraHeight, cameraDistance);
-
+		DirectX::SimpleMath::Vector3 baseOffset(0.0f, FOLLOW_CAMERA_HEIGHT, FOLLOW_CAMERA_DISTANCE);
 		// 回転を適用
 		DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(m_yAngle) * DirectX::SimpleMath::Matrix::CreateRotationX(m_xAngle);
 		DirectX::SimpleMath::Vector3 rotatedOffset = DirectX::SimpleMath::Vector3::Transform(baseOffset, rot);
@@ -125,13 +141,13 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 		}
 
 
-		float finalDist = std::max(1.0f, hitDist - 0.3f);
+		float finalDist = std::max(MIN_CAMERA_RAY_DISTANCE, hitDist - WALL_SAFETY_BUFFER);
 		m_eye = rayOrigin + (rayDir * finalDist);
 	}
 	else
 	{
 		DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(m_yAngle) * DirectX::SimpleMath::Matrix::CreateRotationX(m_xAngle);
-		DirectX::SimpleMath::Vector3 forward = DirectX::SimpleMath::Vector3::Transform({ 0, 0, -1 }, rot);
+		DirectX::SimpleMath::Vector3 forward = DirectX::SimpleMath::Vector3::Transform({ 0.0f, 0.0f, -1.0f }, rot);		
 		m_eye = m_target - (forward * fixedCameraDist);
 	}
 
@@ -163,7 +179,8 @@ void GameCamera::Motion(int x, int y)
 		m_yTmp = m_yAngle + yAngle;
 
 		// 縦回転（X軸回転）のみ制限をかける
-		m_xTmp = std::max(-DirectX::XM_PIDIV2 * 0.9f, std::min(DirectX::XM_PIDIV2 * 0.9f, m_xTmp));
+		m_xTmp = std::max(-DirectX::XM_PIDIV2 * CAMERA_PITCH_LIMIT_RATIO, 
+			std::min(DirectX::XM_PIDIV2 * CAMERA_PITCH_LIMIT_RATIO, m_xTmp));
 
 	}
 }

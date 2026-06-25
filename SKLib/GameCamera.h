@@ -23,12 +23,79 @@ public:
 // ゲームカメラクラス
 class GameCamera
 {
+public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- カメラの基本行列・座標 ---
+	// カメラの位置を取得する関数
+	DirectX::SimpleMath::Vector3 GetEyePosition() const;
+	// カメラの注視点を取得する関数
+	DirectX::SimpleMath::Vector3 GetTargetPosition() const;
+	// フリーモード時のカメラの注視点を設定する関数
+	void SetTargetPosition(const DirectX::SimpleMath::Vector3& target);
+	// カメラのビュー行列を取得する関数
+	DirectX::SimpleMath::Matrix GetCameraMatrix() const;
+
+	// --- カメラの角度・回転 ---
+	// 現在の水平角度を取得する関数
+	float GetHorizontalAngle() const { return m_cameraHorizontalAngle; }
+	// 現在の垂直（Y軸）角度を取得する関数
+	float GetYAngle() const { return m_yAngle; }
+	// カメラの角度を設定する関数
+	void SetAngle(float xAngle, float yAngle);
+
+	// --- カメラの距離・入力 ---
+	// 追従時のカメラの距離を設定する関数
+	void SetDistance(float distance);
+	// マウスのスクロールホイールの値を取得する関数
+	float GetScrollDelta() const { return m_scrollData; }
+
+	// --- 追従・フリーモード制御  ---
+	// 追従／フリーモードの切替関数
+	void SetFollowMode(bool enable);
+	// 追従カメラの注視点を取得する関数
+	DirectX::SimpleMath::Vector3 GetFollowTargetPosition() const;
+	// カメラの追従（位置とターゲット）を一括設定する関数
+	void SetFollowTarget(const DirectX::SimpleMath::Vector3& eye, const DirectX::SimpleMath::Vector3& target);
+
+	// --- ウィンドウ・システム設定 ---
+	// 画面サイズを取得する関数
+	void GetWindowSize(int& windowWidth, int& windowHeight) const;
+	// 画面サイズを設定する関数
+	void SetWindowSize(int windowWidth, int windowHeight);
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
+	// コンストラクタ
+	GameCamera(int windowWidth, int windowHeight);
+
+	// 更新
+	void Update(const DirectX::SimpleMath::Vector3& playerPos,
+		ICameraCollisionProvider* collisionProvider);
 private:
-	// 定数
-	static constexpr float MOUSE_SENSITIVITY = 0.00095f; ///< マウス感度
-	static constexpr float DISTANCE_CORRECTION = 0.001f; ///< カメラの距離補正値
+	void Motion(int x, int y);
 
 private:
+	// 定数 ---------------------------------------------------------------------------------
+	static const float HALF_DIVIDER;		///< 画面中心を求めるための除算値
+	static const float MOUSE_SENSITIVITY;	///< マウス感度
+	static const float MOUSE_ROTATION_LIMIT;///< // 縦回転（ピッチ）を制限するための係数
+	static const float SCROLL_SENSITIVITY;	///< マウスホイールのスクロール感度
+	static const float MIN_SCROLL_RANGE;	///< 攻撃範囲（スクロール値）の最小値
+	static const float MAX_SCROLL_RANGE;	///< 攻撃範囲（スクロール値）の最大値
+
+	static const float FIXED_CAMERA_DISTANCE;	///< 非追従モード時のプレイヤーからの固定距離
+	static const float FOLLOW_CAMERA_DISTANCE;	///< 追従モード時の基本カメラ距離
+	static const float FOLLOW_CAMERA_HEIGHT;	///< 追従モード時の基本カメラの高さ
+	static const float MIN_CAMERA_RAY_DISTANCE;	///< 壁に作られた際の最小カメラ距離
+
+	static const float TARGET_HEIGHT_OFFSET;	///< カメラが注視するプレイヤーの高さ
+	static const float RAY_ORIGIN_HEIGHT_OFFSET;///< 壁判定用レイを発射するプレイヤーの高さ基準
+	static const float WALL_SAFETY_BUFFER;		///< カメラが壁にめり込まないように手前に戻すバッファ距離
+
+	static const float CAMERA_PITCH_LIMIT_RATIO;///< カメラの最大見上げ・見下ろし角を限界の手前に抑えるための制限比率
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// カメラの距離
 	float m_cameraDistance;
 
@@ -59,11 +126,6 @@ private:
 	DirectX::SimpleMath::Vector3 m_followEye;
 	DirectX::SimpleMath::Vector3 m_followTarget;
 
-	//bool m_isGimmickView;
-	//float m_gimmickViewTimer = 0.0f;
-	//DirectX::SimpleMath::Vector3 m_gimmickTarget;
-	//DirectX::SimpleMath::Vector3 m_gimmickEye;
-
 	// 追従モードの水平角度
 	float m_cameraHorizontalAngle;
 
@@ -71,7 +133,6 @@ private:
 	float m_scrollData = 5.0f;
 	// 前回のスクロールホイールの値
 	int m_lastWheelValue;
-
 public:
 	// 視点
 	DirectX::SimpleMath::Vector3 m_eye;
@@ -79,59 +140,4 @@ public:
 	// 注視点
 	DirectX::SimpleMath::Vector3 m_target;
 
-private:
-	void Motion(int x, int y);
-
-public:
-	// コンストラクタ
-	GameCamera(int windowWidth, int windowHeight);
-
-	// 更新
-	void Update(const DirectX::SimpleMath::Vector3& playerPos,
-		ICameraCollisionProvider* collisionProvider);
-
-	// 現在の水平角度を取得する関数
-	float GetHorizontalAngle() const { return m_cameraHorizontalAngle; }
-
-	// カメラのビュー行列の取得関数
-	DirectX::SimpleMath::Matrix GetCameraMatrix() const;
-
-	// カメラの位置の取得関数
-	DirectX::SimpleMath::Vector3 GetEyePosition() const;
-
-	// カメラの注視点の取得関数
-	DirectX::SimpleMath::Vector3 GetTargetPosition() const;
-
-	// 追従カメラの注視点の取得関数
-	DirectX::SimpleMath::Vector3 GetFollowTargetPosition() const;
-
-	// 画面サイズの取得関数
-	void GetWindowSize(int& windowWidth, int& windowHeight) const;
-
-	// 現在の水平角度を取得する関数
-	float GetYAngle() const { return m_yAngle; }
-
-	// マウスのスクロールホイールの値を取得する関数
-	float GetScrollDelta() const { return m_scrollData; }
-
-	//bool IsGimmickViewActive() const { return m_isGimmickView; }
-	
-	// 画面サイズの設定関数
-	void SetWindowSize(int windowWidth, int windowHeight);
-
-	// カメラの角度を設定する関数
-	void SetAngle(float xAngle, float yAngle);
-
-	// 追従時のカメラの距離を設定する関数
-	void SetDistance(float distance);
-
-	// カメラの追従を設定する関数
-	void SetFollowTarget(const DirectX::SimpleMath::Vector3& eye, const DirectX::SimpleMath::Vector3& target);
-
-	// 追従／フリーモードの切替関数
-	void SetFollowMode(bool enable);
-
-	// フリーモード時のカメラの距離を設定する関数
-	void SetTargetPosition(const DirectX::SimpleMath::Vector3& target);
 };
-

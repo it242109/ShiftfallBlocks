@@ -99,15 +99,6 @@ void UserInterface::Create(DX::DeviceResources* pDR
 	m_states = std::make_unique<DirectX::CommonStates>(device);
 }
 
-void UserInterface::SetScale(DirectX::SimpleMath::Vector2 scale)
-{
-	m_scale = scale;
-}
-void UserInterface::SetPosition(DirectX::SimpleMath::Vector2 position)
-{
-	m_position = position;
-}
-
 // Shaderì¬•”•ª‚¾‚¯•ª—£‚µ‚½ŠÖ”
 void UserInterface::CreateShader()
 {

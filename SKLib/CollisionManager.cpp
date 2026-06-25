@@ -6,6 +6,12 @@
 #include "pch.h"
 #include "CollisionManager.h"
 
+// 定数の定義
+const float AABB::HALF_DIVIDER = 2.0f;			///< サイズから半幅（中心からの半径）を出すための除算値
+const float AABB::INVALID_GROUND_Y = -10000.0f;	///< 地面の上にいないと判定された場合に返す無効な高さの戻り値
+const int OBB::DIMENSIONS_3D = 3;				///< // 3次元空間の軸数（X, Y, Zの3種類
+
+
 /*
 * @brief コンストラクタ
 *
@@ -71,17 +77,17 @@ AABB AABB::CreateAABB(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3
 	// 最小値は座標の位置にサイズ÷2を引いた値
 	box.min = 
 	{ 
-		position.x - size.x / 2,
-		position.y - size.y / 2,
-		position.z - size.z / 2 
+		position.x - size.x / HALF_DIVIDER,
+		position.y - size.y / HALF_DIVIDER,
+		position.z - size.z / HALF_DIVIDER
 	};
 
 	// 最大値は座標の位置にサイズ÷2を足した値
 	box.max =
 	{
-		position.x + size.x / 2,
-		position.y + size.y / 2,
-		position.z + size.z / 2
+		position.x + size.x / HALF_DIVIDER,
+		position.y + size.y / HALF_DIVIDER,
+		position.z + size.z / HALF_DIVIDER
 	};
 
 	return box;
@@ -122,11 +128,11 @@ float AABB::GetGroundY(const DirectX::SimpleMath::Vector3& position, const AABB&
 			return groundBox.max.y; 
 		}
 	}
-	return -10000.0f;
+	return INVALID_GROUND_Y;
 }
 
 /*
-* @brief OBB当たり判定
+* @brief OBB当たり判定の処理
 *
 * @param[in]  obbA OBBの当たり判定の構造体A
 * @param[in]  obbB OBBの当たり判定の構造体B
@@ -145,7 +151,7 @@ bool OBB::OBBIntersect(const OBB& obbA, const OBB& obbB)
 	};
 
 	// 各軸に対しての判定
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < DIMENSIONS_3D; ++i)
 	{
 		// OBB1の軸
 		DirectX::XMFLOAT3 axis1 = obbA.orientation[i];

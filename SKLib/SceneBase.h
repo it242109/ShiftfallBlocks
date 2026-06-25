@@ -17,10 +17,15 @@ class SceneManager;
 template<class T>
 class SceneBase
 {
-	// シーンマネージャーへのポインタ
-	SceneManager<T>* m_sceneManager;
+public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// シーンマネージャー設定関数
+	void SetSceneManager(SceneManager<T>* sceneManager) { m_sceneManager = sceneManager; }
+	// シーンマネージャーを取得する関数
+	SceneManager<T>* GetSceneManager() const { return m_sceneManager; }
 
 public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	SceneBase() : m_sceneManager(nullptr) {}
 
@@ -47,11 +52,7 @@ public:
 
 	// デバイスロストした時に呼び出される関数
 	virtual void OnDeviceLost() {}
-
 public:
-	// シーンマネージャー設定関数
-	void SetSceneManager(SceneManager<T>* sceneManager) { m_sceneManager = sceneManager; }
-
 	// シーンの切り替え関数
 	template <class U>
 	void ChangeScene();
@@ -59,10 +60,13 @@ public:
 	template <class U, class V>
 	void ChangeLoadingScene();
 
+public:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// 設定したリソース取得関数
 	T* GetUserResources();
+	// シーンマネージャーへのポインタ
+	SceneManager<T>* m_sceneManager;
 
-	SceneManager<T>* GetSceneManager() const { return m_sceneManager; }
 };
 
 // ロード画面の基底クラス

@@ -69,7 +69,6 @@ void Switch::Update(const std::vector<std::shared_ptr<GimmickBlock>>& gimmickBlo
 
         bool isActivated = false;
         const auto& switchCollider = m_collisions[i];
-
         // 各仕掛けブロックとの当たり判定
         for (auto& block : gimmickBlocks)
         {

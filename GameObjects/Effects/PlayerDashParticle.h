@@ -64,6 +64,7 @@ private:
 
 	// ランダムな浮動小数点数を生成する関数
 	float RandomFloat(float min, float max);
+
 private:
 	// 定数 -----------------------------------------------------------
 	static const float EMITTER_RANGE_SCALE;			///< エミッタ―の範囲をどれくらいにするか

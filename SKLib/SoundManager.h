@@ -13,6 +13,12 @@
 class SoundManager
 {
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// オーディオエンジンを取得
+	DirectX::AudioEngine* GetEngine() { return m_audioEngine.get(); }
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// シングルトンを取得する
 	static SoundManager& GetInstance()
 	{
@@ -44,10 +50,8 @@ public:
 	// 終了処理
 	void Shutdown();
 
-	// オーディオエンジンを取得
-	DirectX::AudioEngine* GetEngine() { return m_audioEngine.get(); }
-
 private:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// デフォルトコンストラクタ／デフォルトデストラクタ
 	SoundManager();
 	~SoundManager();

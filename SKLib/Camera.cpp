@@ -6,6 +6,7 @@
 #include "pch.h"
 #include "Camera.h"
 
+// 定数の定義
 const float Camera::EYE_SPEED_RATE = 0.05f;		// カメラの位置への距離の差分に対する割合
 const float Camera::TARGET_SPEED_RATE = 1.0f;	// 注視点への距離の差分に対する割合
 

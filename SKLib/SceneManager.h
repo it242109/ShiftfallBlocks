@@ -20,28 +20,32 @@ class SceneManager;
 template<class T>
 class SceneManager
 {
-private:
-	// 共通でアクセスしたいオブジェクトへのポインタ
-	T* m_userResources;
-
-	// 現在のシーン
-	std::unique_ptr<SceneBase<T>> m_currentScene;
-
-	// 次のシーン
-	std::unique_ptr<SceneBase<T>> m_nextScene;
-
-	// ロード画面
-	std::unique_ptr<LoadingScreen<T>> m_loadingScreen;
-
-	// スレッドと共有数
-	std::thread m_loadingThread;
-	std::mutex m_loadingMutex;
-	bool m_isLoading;
-
-	// シーン削除
-	void DeleteScene();
-	
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+// --- シーン遷移・設定 ---
+	// シーンを即座に切り替える設定関数
+	template <class U>
+	void SetScene();
+
+	// 次のフレームで切り替えるシーンの設定関数
+	template <class U>
+	bool SetNextScene();
+
+	// ロード画面を挟んで次のシーンへ切り替える設定関数
+	template<class U, class V>
+	bool SetLoadingScene();
+
+	// --- 現在のシーン情報  ---
+	// 現在実行中のシーンの型（std::type_info）を取得する関数
+	const std::type_info& GetCurrentSceneType() const;
+
+	// --- ユーザーリソース  ---
+	// ユーザーリソースを取得する関数
+	T* GetUserResources() { return m_userResources; }
+	// ユーザーリソースを設定する関数
+	void SetUserResources(T* userResources) { m_userResources = userResources; }
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	SceneManager(T* userResources = nullptr)
 		: m_userResources(userResources)
@@ -52,9 +56,9 @@ public:
 	{
 	};
 	// デストラクタ
-	virtual ~SceneManager() 
+	virtual ~SceneManager()
 	{
-		DeleteScene(); 
+		DeleteScene();
 
 		if (m_loadingThread.joinable())
 		{
@@ -77,33 +81,33 @@ public:
 	// デバイスロストした時に呼び出される関数
 	virtual void OnDeviceLost();
 
-	// シーンの設定関数
-	template <class U>
-	void SetScene();
-
-	// 次のシーンの設定関数
-	template <class U>
-	bool SetNextScene();
-
-	// ロード画面を伴うシーンの設定関数
-	template<class U, class V>
-	bool SetLoadingScene();
-
-	// ユーザーリソース設定関数
-	void SetUserResources(T* userResources) { m_userResources = userResources; }
-	
-	// ユーザーリソース取得関数
-	T* GetUserResources() { return m_userResources; }
-
 	// 次のシーンへの準備
 	void PrepareNextScene(std::function<std::unique_ptr<SceneBase<T>>()> sceneFactory);
 
 	// ロード中かどうか
 	bool IsLoading();
 
-	// 現在のシーンの型を取得する関数
-	const std::type_info& GetCurrentSceneType() const;
+	// シーン削除
+	void DeleteScene();
 
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
+	// 共通でアクセスしたいオブジェクトへのポインタ
+	T* m_userResources;
+
+	// 現在のシーン
+	std::unique_ptr<SceneBase<T>> m_currentScene;
+
+	// 次のシーン
+	std::unique_ptr<SceneBase<T>> m_nextScene;
+
+	// ロード画面
+	std::unique_ptr<LoadingScreen<T>> m_loadingScreen;
+
+	// スレッドと共有数
+	std::thread m_loadingThread;
+	std::mutex m_loadingMutex;
+	bool m_isLoading;
 };
 
 // シーンの設定関数

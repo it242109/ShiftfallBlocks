@@ -20,18 +20,24 @@ public:
 		FINISHED
 	};
 public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- チュートリアル状態・進行 ---
+	// 現在のチュートリアル状態を取得
+	TutorialState GetState() const { return m_state; }
+	// チュートリアル状態を設定
+	void SetState(TutorialManager::TutorialState state);
+
+	// --- アクティブ状態 ---
+	// チュートリアルが現在実行中（アクティブ）かどうか
+	bool IsActive() const { return m_active; }
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	TutorialManager();
 	
 	// 更新処理
 	void Update() const;
-
-	// 状態取得
-	TutorialState GetState() const { return m_state; }
-	bool IsActive() const { return m_active; }
-
-	// セッター
-	void SetState(TutorialManager::TutorialState state);
 
 	// プレイヤーがロックされているかどうか
 	bool IsPlayerLocked() const;
@@ -46,6 +52,7 @@ public:
 	void NextStep();
 
 private:
+	// メンバ変数 ---------------------------------------------------------------------------
 	// チュートリアルの状態
 	TutorialState m_state = TutorialState::NONE;
 

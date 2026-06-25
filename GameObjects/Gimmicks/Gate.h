@@ -68,6 +68,9 @@ private:
 	static const float GATE_COLLISION_WIDTH_SCALE;	///< ゲートの当たり判定の幅
 	static const float GATE_COLLISION_DEPTH_SCALE ;	///< ゲートの当たり判定の奥行
 
+	static const float FIELD_OF_VIEW_DEGREES;		///< 視野角
+	static const float NEAR_PLANE_DISTANCE;			///< カメラの最前面のクリップ距離
+	static const float FAR_PLANE_DISTANCE;			///< カメラの最遠面のクリップ距離
 private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// デバイスリソース／コモンステート

@@ -23,11 +23,11 @@ enum class ItemType
 
 struct ItemData
 {
-	DirectX::SimpleMath::Vector3 position = { 0.0f,0.0f,0.0f };
-	DirectX::SimpleMath::Vector3 scale = { 0.0f,0.0f,0.0f };
-	ItemType itemType = ItemType::NONE;
-	bool isActive = true;
-	std::function<void(Player*)> onPickup;
+	DirectX::SimpleMath::Vector3 position = { 0.0f,0.0f,0.0f };	///< ˆÊ’u
+	DirectX::SimpleMath::Vector3 scale = { 0.0f,0.0f,0.0f };	///< ‘å‚«‚³
+	ItemType itemType = ItemType::NONE;							///< Ží—Þ
+	bool isActive = true;										///< —LŒø‚©‚Ç‚¤‚©
+	std::function<void(Player*)> onPickup;						///< Ž‚¿ã‚°“®ì
 };
 
 class Item

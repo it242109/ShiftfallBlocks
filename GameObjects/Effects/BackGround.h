@@ -51,14 +51,12 @@ private:
 	// メンバ変数 -----------------------------------------------------
 	// デバイスリソースへのポインタ
 	DX::DeviceResources* m_pDR;
-
 	// バッファ
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	m_CBuffer;
-
+	// ステップタイマー
 	DX::StepTimer                           m_timer;
 	//	入力レイアウト
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-
 	//	プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColorTexture>> m_batch;
 	//	コモンステート

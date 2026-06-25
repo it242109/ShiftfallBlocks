@@ -41,23 +41,72 @@ public:
 	{
 		DirectX::SimpleMath::Vector4	windowSize;
 	};
-	//	変数
-private:
-	DX::DeviceResources* m_pDR;
 
+public:
+	// ゲッター／セッター -------------------------------------------------------------------
+	// --- 座標  ---
+	// 座標を取得する関数
+	DirectX::SimpleMath::Vector2 GetPosition() const { return m_position; }
+	// 座標を設定する関数
+	void SetPosition(DirectX::SimpleMath::Vector2 position){ m_position = position; }
+
+	// --- スケール・大きさ ---
+	// 現在のスケールを取得する関数
+	DirectX::SimpleMath::Vector2 GetScale() const { return m_scale; }
+	// 基準となるベーススケールを取得する関数
+	DirectX::SimpleMath::Vector2 GetBaseScale() const { return m_baseScale; }
+	// スケールを設定する関数
+	void SetScale(DirectX::SimpleMath::Vector2 scale) { m_scale = scale; }
+
+	// --- アンカー・基準点 ---
+	// アンカー（基準点）を取得する関数
+	ANCHOR GetAnchor() const { return m_anchor; }
+
+	// --- ウィンドウ・システム設定 ---
+	// 画面サイズを設定する関数
+	void SetWindowSize(const int& width, const int& height);
+
+public:
+	// 関数 ---------------------------------------------------------------------------------
+	// コンストラクタ／デストラクタ
+	UserInterface();
+	~UserInterface();
+
+	// テクスチャリソース読み込み関数
+	void LoadTexture(const wchar_t* path);
+	
+	// 生成関数
+	void Create(DX::DeviceResources* pDR
+		, const wchar_t* path
+		, DirectX::SimpleMath::Vector2 position
+		, DirectX::SimpleMath::Vector2 scale
+		, ANCHOR anchor);
+
+	// 描画処理
+	void Render();
+private:
+	// Shader作成部分だけ分離した関数
+	void CreateShader();
+	
+private:
+	// 定数----------------------------------------------------------------------------------
+	// インプットレイアウト
+	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;
+
+private:
+	// メンバ変数 ---------------------------------------------------------------------------
+	// デバイスリソースのポインタ
+	DX::DeviceResources* m_pDR;
 	// バッファ
 	Microsoft::WRL::ComPtr<ID3D11Buffer>	m_CBuffer;
-
+	// ステップタイマー
 	DX::StepTimer                           m_timer;
 	//	入力レイアウト
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-
 	//	プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColorTexture>> m_batch;
-
 	//	コモンステート
 	std::unique_ptr<DirectX::CommonStates> m_states;
-
 	//	テクスチャハンドル
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
 	Microsoft::WRL::ComPtr<ID3D11Resource> m_res;
@@ -77,34 +126,4 @@ private:
 	DirectX::SimpleMath::Vector2 m_position;
 
 	ANCHOR m_anchor;
-
-	//	関数
-public:
-	static const std::vector<D3D11_INPUT_ELEMENT_DESC> INPUT_LAYOUT;
-
-	UserInterface();
-	~UserInterface();
-
-	void LoadTexture(const wchar_t* path);
-
-	void Create(DX::DeviceResources* pDR
-		, const wchar_t* path
-		, DirectX::SimpleMath::Vector2 position
-		, DirectX::SimpleMath::Vector2 scale
-		, ANCHOR anchor);
-
-	void Render();
-
-	void SetWindowSize(const int& width, const int& height);
-
-	void SetScale(DirectX::SimpleMath::Vector2 scale);
-	DirectX::SimpleMath::Vector2 GetScale() const { return m_scale; }
-	DirectX::SimpleMath::Vector2 GetBaseScale() const { return m_baseScale; }
-	void SetPosition(DirectX::SimpleMath::Vector2 position);
-	DirectX::SimpleMath::Vector2 GetPosition() const { return m_position; }
-	ANCHOR GetAnchor() const { return m_anchor; }
-
-
-private:
-	void CreateShader();
 };

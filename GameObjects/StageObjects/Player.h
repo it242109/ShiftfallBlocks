@@ -184,6 +184,7 @@ private:
 	static const float FIELD_OF_VIEW_DEGREES;		///< 視野角
 	static const float NEAR_PLANE_DISTANCE;			///< カメラの最前面のクリップ距離
 	static const float FAR_PLANE_DISTANCE;			///< カメラの最遠面のクリップ距離
+
 private:
 	// メンバ変数 ------------------------------------------------------------------
 	// デバッグカメラのポインタ

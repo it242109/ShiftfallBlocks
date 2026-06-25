@@ -15,6 +15,9 @@ const float Gate::GATE_COLLISION_SIZE_SCALE = 1.0f;		///< ゲートの当たり判定の大
 const float Gate::GATE_COLLISION_WIDTH_SCALE = 0.5f;	///< ゲートの当たり判定の幅
 const float Gate::GATE_COLLISION_DEPTH_SCALE = 0.3f;	///< ゲートの当たり判定の奥行
 
+const float Gate::FIELD_OF_VIEW_DEGREES = 45.0f;			///< 視野角
+const float Gate::NEAR_PLANE_DISTANCE = 0.1f;				///< カメラの最前面のクリップ距離
+const float Gate::FAR_PLANE_DISTANCE = 100.0f;			///< カメラの最遠面のクリップ距離
 /*
 * @brief コンストラクタ
 *
@@ -159,9 +162,9 @@ void Gate::CreateDeviceDependentResources()
 	// 射影行列の作成
 	RECT rect = m_deviceResources->GetOutputSize();
 	m_proj = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(
-		DirectX::XMConvertToRadians(45.0f),
+		DirectX::XMConvertToRadians(FIELD_OF_VIEW_DEGREES),
 		static_cast<float>(rect.right) / static_cast<float>(rect.bottom),
-		0.1f, 100.0f
+		NEAR_PLANE_DISTANCE, FAR_PLANE_DISTANCE
 	);
 }
 
