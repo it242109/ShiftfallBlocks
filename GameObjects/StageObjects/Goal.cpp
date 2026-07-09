@@ -200,5 +200,7 @@ void Goal::ColliderLine()
 	m_primitiveBatch->DrawLine({ corners[2], lineColor }, { corners[6], lineColor });
 	m_primitiveBatch->DrawLine({ corners[3], lineColor }, { corners[7], lineColor });
 
+	/*//////////////////////////////////////////////////////////////////////////////*/
+
 	m_primitiveBatch->End();
 }

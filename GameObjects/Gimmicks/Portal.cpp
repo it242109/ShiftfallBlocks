@@ -223,21 +223,27 @@ void Portal::ColliderLine( const std::vector<bool>& portalStates)
 				{ p_col.min.x, p_col.max.y, p_col.max.z },
 			};
 
-			// ü‚Ì•`‰æ
+			/*/////////////////////////////////////ü‚Ì•`‰æ///////////////////////////////////////////*/
+
+			// ‘O–Ê‚Ìü‚ð•`‰æ
 			m_primitiveBatch->DrawLine({ portalCorners[0], lineColor }, { portalCorners[1], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[1], lineColor }, { portalCorners[2], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[2], lineColor }, { portalCorners[3], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[3], lineColor }, { portalCorners[0], lineColor });
 
+			// ”w–Ê‚Ìü‚ð•`‰æ
 			m_primitiveBatch->DrawLine({ portalCorners[4], lineColor }, { portalCorners[5], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[5], lineColor }, { portalCorners[6], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[6], lineColor }, { portalCorners[7], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[7], lineColor }, { portalCorners[4], lineColor });
 
+			// ‘O–Ê‚Æ”w–Ê‚ð‚Â‚È‚®ü‚ð•`‰æ
 			m_primitiveBatch->DrawLine({ portalCorners[0], lineColor }, { portalCorners[4], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[1], lineColor }, { portalCorners[5], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[2], lineColor }, { portalCorners[6], lineColor });
 			m_primitiveBatch->DrawLine({ portalCorners[3], lineColor }, { portalCorners[7], lineColor });
+
+			/*////////////////////////////////////////////////////////////////////////////////////////*/
 		}
 	}
 

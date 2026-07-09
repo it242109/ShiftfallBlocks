@@ -209,6 +209,7 @@
     <ClInclude Include="GameObjects\Effects\CorrectSwitchParticle.h">
       <Filter>GameObjects\Effects</Filter>
     </ClInclude>
+    <ClInclude Include="GameObjects\StageType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />

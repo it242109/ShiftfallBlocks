@@ -61,6 +61,10 @@ public:
 
 private:
 	// 定数 ---------------------------------------------------------------------------------
+	static const float INITIAL_X;					///< 初期位置Ｘ（定数）
+
+	static const DirectX::SimpleMath::Vector3 DEFAULT_SCALE;///< ゲートのデフォルトの大きさ
+
 	static const float MAX_GATE_OPEN;				///< ゲートの最大開き具合
 	static const float MIN_GATE_OPEN;				///< ゲートの最小開き具合
 	static const float OPEN_CLOSE_SPEED;			///< ゲートの開閉速度
@@ -111,9 +115,11 @@ private:
 	// 平行移動の行列
 	DirectX::SimpleMath::Matrix m_gateTrans;
 
+	// 初期位置Ｘ
+	float m_initialX;
+
 	// 回転角度
 	float m_gateRotAngle;
-	const float m_rotSpeed = DirectX::XMConvertToRadians(80.0f);
 
 	// 開閉フラグ
 	bool m_isOpen = false;

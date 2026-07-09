@@ -25,6 +25,8 @@ public:
 	// --- システム・グラフィックス ---
 	// ステージシーンからパスを取得
 	static std::string GetCurrentStageFilePath();
+	// リザルトシーン等から次のステージのパスを同期させる関数
+	static void SetCurrentStageFilePathByIndex(int stageIndex);
 
 public:
 	// 関数 ---------------------------------------------------------------------------------

@@ -61,12 +61,12 @@ bool TutorialManager::IsPlayerLocked() const
 	// プレイヤーをロック
 	switch (m_state)
 	{
-	case TutorialState::MOVEMENT:
-	case TutorialState::MOUSE:
-	case TutorialState::LIFTANDDROP: 
-	case TutorialState::SWITCH: 
-	case TutorialState::ITEM: 
-	case TutorialState::ATTACK:
+	case TutorialState::MOVEMENT:	// 移動操作
+	case TutorialState::MOUSE:		// マウス操作
+	case TutorialState::LIFTANDDROP:// 持ち上げ／設置操作
+	case TutorialState::SWITCH:		// スイッチについての説明
+	case TutorialState::ITEM:		// アイテムについての説明
+	case TutorialState::ATTACK:		// 攻撃操作
 		return true;
 	default:
 		return false;

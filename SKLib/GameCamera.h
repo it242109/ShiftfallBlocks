@@ -88,6 +88,8 @@ private:
 	static const float FOLLOW_CAMERA_HEIGHT;	///< 追従モード時の基本カメラの高さ
 	static const float MIN_CAMERA_RAY_DISTANCE;	///< 壁に作られた際の最小カメラ距離
 
+	static const DirectX::SimpleMath::Vector3 CAMERA_FOWARD;///< カメラを前方に向ける
+
 	static const float TARGET_HEIGHT_OFFSET;	///< カメラが注視するプレイヤーの高さ
 	static const float RAY_ORIGIN_HEIGHT_OFFSET;///< 壁判定用レイを発射するプレイヤーの高さ基準
 	static const float WALL_SAFETY_BUFFER;		///< カメラが壁にめり込まないように手前に戻すバッファ距離

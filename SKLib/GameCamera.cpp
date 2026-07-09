@@ -23,6 +23,8 @@ const float GameCamera::FOLLOW_CAMERA_DISTANCE = 5.0f;	///< 追従モード時�
 const float GameCamera::FOLLOW_CAMERA_HEIGHT = 2.0f;	///< 追従モード時の基本カメラの高さ
 const float GameCamera::MIN_CAMERA_RAY_DISTANCE = 1.0f;	///< 壁に作られた際の最小カメラ距離
 
+const DirectX::SimpleMath::Vector3 GameCamera::CAMERA_FOWARD = { 0.0f, 0.0f, -1.0f };///< カメラを前方に向ける
+
 const float GameCamera::TARGET_HEIGHT_OFFSET = 1.2f;	///< カメラが注視するプレイヤーの高さ
 const float GameCamera::RAY_ORIGIN_HEIGHT_OFFSET = 1.5f;///< 壁判定用レイを発射するプレイヤーの高さ基準
 const float GameCamera::WALL_SAFETY_BUFFER = 0.3f;		///< カメラが壁にめり込まないように手前に戻すバッファ距離
@@ -110,16 +112,8 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 
 	// 座標計算
 	DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
-	// プレイヤーからカメラまでの距離を固定
-	const float fixedCameraDist = 5.0f;
-
 	if (m_followMode)
 	{
-		// プレイヤーからの距離の設定
-		const float cameraDistance = 5.0f;
-		// プレイヤーからの高さの設定
-		const float cameraHeight = 2.0;
-
 		m_target = playerPos + DirectX::SimpleMath::Vector3(0.0f, TARGET_HEIGHT_OFFSET, 0.0f);
 		// レイの開始点
 		DirectX::SimpleMath::Vector3 rayOrigin = playerPos + DirectX::SimpleMath::Vector3(0.0f, RAY_ORIGIN_HEIGHT_OFFSET, 0.0f);
@@ -147,8 +141,8 @@ void GameCamera::Update(const DirectX::SimpleMath::Vector3& playerPos, ICameraCo
 	else
 	{
 		DirectX::SimpleMath::Matrix rot = DirectX::SimpleMath::Matrix::CreateRotationY(m_yAngle) * DirectX::SimpleMath::Matrix::CreateRotationX(m_xAngle);
-		DirectX::SimpleMath::Vector3 forward = DirectX::SimpleMath::Vector3::Transform({ 0.0f, 0.0f, -1.0f }, rot);		
-		m_eye = m_target - (forward * fixedCameraDist);
+		DirectX::SimpleMath::Vector3 forward = DirectX::SimpleMath::Vector3::Transform(CAMERA_FOWARD, rot);		
+		m_eye = m_target - (forward * FIXED_CAMERA_DISTANCE);
 	}
 
 	m_view = DirectX::SimpleMath::Matrix::CreateLookAt(m_eye, m_target, up);

@@ -257,6 +257,8 @@ void Item::ColliderLine()
 			{ collision.min.x, collision.max.y, collision.max.z }
 		};
 
+		/*/////////////////////////////////////ü‚Ì•`‰æ///////////////////////////////////////////*/
+
 		// ‘O–Ê‚Ìü‚ğ•`‰æ
 		m_primitiveBatch->DrawLine({ corners[0], lineColor }, { corners[1], lineColor });
 		m_primitiveBatch->DrawLine({ corners[1], lineColor }, { corners[2], lineColor });
@@ -274,6 +276,8 @@ void Item::ColliderLine()
 		m_primitiveBatch->DrawLine({ corners[1], lineColor }, { corners[5], lineColor });
 		m_primitiveBatch->DrawLine({ corners[2], lineColor }, { corners[6], lineColor });
 		m_primitiveBatch->DrawLine({ corners[3], lineColor }, { corners[7], lineColor });
+
+		/*////////////////////////////////////////////////////////////////////////////////////////*/
 
 	}
 	m_primitiveBatch->End();

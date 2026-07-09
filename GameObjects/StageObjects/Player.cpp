@@ -24,6 +24,7 @@ const float Player::STAMINA_REGEN_RATE = 5.0f;				///< スタミナ回復率
 const float Player::MIN_DASH_STAMINA = 10.0f;				///< スタミナの最小値
 const float Player::DASH_RECOVERY_THRESHOLD_RATIO = 0.5f;	///< ダッシュ再開が可能になるスタミナの割合
 const float Player::FALL_DEATH_THRESHOLD_Y = -12.0f;		///< 落下死と判定するY座標のしきい値	
+const float Player::FALLING_THRESHOLD = 0.0f;				///< 垂直速度が下向きであることを判定するしきい値
 const float Player::HALF_SCALE = 0.5f;						///< 半分のサイズにする
 const float Player::TOP_Y_OFFSET_THRESHOLD = 0.5f;			///< 判定対象とする床の高さの許容誤差
 const float Player::DEFAULT_SURFACE_Y = 0.0f;				///< 床が見つからなかった場合のデフォルトの高さ
@@ -702,17 +703,17 @@ void Player::UpdateCollision(const AABB& collision, const DirectX::SimpleMath::V
 	// 最も小さい重なり方向に押し戻す
 	if (overlap.y <= overlap.x && overlap.y <= overlap.z)
 	{
-		float playerBottom = m_playerPosition.y - (m_playerScale.y * 0.5f);
-		float objectTop = position.y + (collision.max.y - collision.min.y) * 0.5f;
+		float playerBottom = m_playerPosition.y - (m_playerScale.y * HALF_SCALE);
+		float objectTop = position.y + (collision.max.y - collision.min.y) * HALF_SCALE;
 
 		// 着地の許容範囲
 		const float landingThreshold = 0.2f;
 
 		// 上から着地した場合
-		if (playerBottom >= objectTop - landingThreshold && m_verticalVelocity <= 0.0f)
+		if (playerBottom >= objectTop - landingThreshold && m_verticalVelocity <= FALLING_THRESHOLD)
 		{
 			// プレイヤーを床の上に正しく置く
-			m_playerPosition.y = objectTop + (m_playerScale.y * 0.5f);
+			m_playerPosition.y = objectTop + (m_playerScale.y * HALF_SCALE);
 
 			// フラグ更新
 			m_floorHit = true;
@@ -967,7 +968,7 @@ void Player::ColliderLine()
 		{ m_attackCollision.min.x, m_attackCollision.max.y, m_attackCollision.max.z }
 	};
 
-	/*/////////////////////////////////////プレイヤーの線の描画/////////////////////////////////*/
+	/*////////////////////////////////////////線の描画///////////////////////////////////////////*/
 
 	// 前面の線を描画
 	m_primitiveBatch->DrawLine({ playerCorners[0], lineColorA }, { playerCorners[1], lineColorA });
@@ -1001,6 +1002,8 @@ void Player::ColliderLine()
 	m_primitiveBatch->DrawLine({ attackCorners[1], lineColorB }, { attackCorners[5], lineColorB });
 	m_primitiveBatch->DrawLine({ attackCorners[2], lineColorB }, { attackCorners[6], lineColorB });
 	m_primitiveBatch->DrawLine({ attackCorners[3], lineColorB }, { attackCorners[7], lineColorB });
+
+	/*///////////////////////////////////////////////////////////////////////////////////////////*/
 
 	m_primitiveBatch->End();
 }

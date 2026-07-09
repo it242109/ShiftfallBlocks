@@ -22,16 +22,16 @@
 using json = nlohmann::json;
 
 // 定数の定義
-const float TutorialStage::HALF_SIZE = 0.5f;									///< 半分のサイズ
+const float TutorialStage::HALF_SIZE = 0.5f;												///< 半分のサイズ
 const DirectX::SimpleMath::Vector3 TutorialStage::DEFAULT_BLOCK_SCALE(0.7f, 0.7f, 0.7f);	///< 生成するギミックブロックの標準サイズ
 const DirectX::SimpleMath::Vector3 TutorialStage::DEFAULT_SWITCH_SCALE(1.0f, 1.0f, 1.0f);	///< スイッチオブジェクトの標準サイズ
 const DirectX::SimpleMath::Vector3 TutorialStage::BLOCK_FOLLOW_OFFSET(0.0f, 1.0f, 0.0f);	///< ブロック追尾時の高さオフセット
-const float TutorialStage::ITEM_SPAWN_TIMER = 3.0f;								///< アイテムがスポーンするまでの時間
-const int TutorialStage::BLOCK_FOLLOW_SPEED_MULTIPLIER = 5;						///< ブロックの追従速度の倍率
-const float TutorialStage::TELEPORT_DURATION = 2.0f;							///< テレポートの演出・クールダウン時間（秒）
-const float TutorialStage::TIMER_END_THRESHOLD = 0.0f;							///< タイマー終了の基準値
-const DirectX::SimpleMath::Vector3 TutorialStage::WORLD_UP_VECTOR(0, 1, 0);		///< 世界の真上を指す上方向ベクトル
-const float TutorialStage::SELF_HIT_INIT_DIST = 0.1f;							///< レイ発射直後の自分自身への誤判定を防ぐための最小距離
+const float TutorialStage::ITEM_SPAWN_TIMER = 3.0f;											///< アイテムがスポーンするまでの時間
+const int TutorialStage::BLOCK_FOLLOW_SPEED_MULTIPLIER = 5;									///< ブロックの追従速度の倍率
+const float TutorialStage::TELEPORT_DURATION = 2.0f;										///< テレポートの演出・クールダウン時間（秒）
+const float TutorialStage::TIMER_END_THRESHOLD = 0.0f;										///< タイマー終了の基準値
+const DirectX::SimpleMath::Vector3 TutorialStage::WORLD_UP_VECTOR(0, 1, 0);					///< 世界の真上を指す上方向ベクトル
+const float TutorialStage::SELF_HIT_INIT_DIST = 0.1f;										///< レイ発射直後の自分自身への誤判定を防ぐための最小距離
 
 
 
@@ -290,6 +290,8 @@ void TutorialStage::Load(const std::string& filePath, Player* player, std::funct
 	}
 }
 
+
+
 /*
 * @brief 更新処理
 *
@@ -297,11 +299,12 @@ void TutorialStage::Load(const std::string& filePath, Player* player, std::funct
 * @param[in]  player        プレイヤーオブジェクトへのポインタ
 * @param[in]  enemies       敵オブジェクトのリストへの参照
 * @param[in]  isTeleporting テレポート中かどうか
+* @param[in]  isPlayerLocked プレイヤーがロックされているかどうか
 *
 * @return なし
 */
-void TutorialStage::Update(float elapsedTime, Player* player,
-	std::vector<std::unique_ptr<Enemy>>& enemies, bool isTeleporting)
+void TutorialStage::Update(float elapsedTime, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies, 
+	bool isTeleporting, bool isPlayerLocked)
 {
 	// 毎フレーム時にリセット ---------------------------------
 	// カギ
@@ -327,25 +330,25 @@ void TutorialStage::Update(float elapsedTime, Player* player,
 	// 仕掛けブロックの更新
 	if (!isTeleporting)
 	{
-		float blockFollowSpeed =
-			(player->GetVelocity() / elapsedTime) * BLOCK_FOLLOW_SPEED_MULTIPLIER;
+		float blockFollowSpeed = (player->GetVelocity() / elapsedTime) * BLOCK_FOLLOW_SPEED_MULTIPLIER;
 
 		for (auto& block : m_gimmickBlocks)
 		{
 			if (!block)
 				continue;
 
-			bool isColliding =
-				block->CheckCollision(player->GetCollision());
+			// プレイヤーとブロックが当たっているか
+			bool isColliding = block->CheckCollision(player->GetCollision());
 
 			// ブロックとの接触時チュートリアル
 			if (isColliding)
 			{
 				m_isLiftanddropShown = true;
 
-				if (InputManager::Get().IsMousePressedRight())
+				// 右クリックで持ち上げ／設置の処理
+				if (!isPlayerLocked && InputManager::Get().IsMousePressedRight())
 				{
-					// 持ち上げ
+					// 持ち上げる
 					if (!block->IsFollowing() && !m_followingBlock)
 					{
 						SoundManager::GetInstance().Play(L"LIFT");
@@ -420,80 +423,86 @@ void TutorialStage::Update(float elapsedTime, Player* player,
 	{
 		m_portal->Update(player->GetCollision(), elapsedTime, m_isSwitchOn_Portal);
 	}
-	m_item->Update(player->GetCollision(), player);
+	//m_item->Update(player->GetCollision(), player);
 	m_goal->Update(player->GetCollision(), player);
 
-	// アイテムの処理
-	for (size_t i = 0; i < m_isSwitchOn_Item.size(); ++i)
+	// プレイヤーがロックされていない場合のみ処理を行う
+	if (!isPlayerLocked) 
 	{
-		if (m_isSwitchOn_Item[i] && !m_isSwordSystemActive)
-		{
-			m_isSwordSystemActive = true;
-			m_itemTypes[i] = ItemType::SWORD;
-
-			// 最初の剣を生成
-			m_item->AddItem(m_itemSpawnPositions[i], m_itemTypes[i]);
-		}
-	}
-	//　アイテムがアクティブだった場合の処理
-	if (m_isSwordSystemActive)
-	{
-		// アイテムの処理
 		m_item->Update(player->GetCollision(), player);
-
-		const auto& currentItems = m_item->GetItems();
-		bool isSwordActive = false;
-
-		// フィールド上にアクティブなアイテムが存在するかチェック
-		for (const auto& it : currentItems)
+		// アイテムの処理
+		for (size_t i = 0; i < m_isSwitchOn_Item.size(); ++i)
 		{
-			if (it.itemType == ItemType::SWORD && it.isActive)
+			if (m_isSwitchOn_Item[i] && !m_isSwordSystemActive)
 			{
-				isSwordActive = true;
-				break;
+				m_isSwordSystemActive = true;
+				m_itemTypes[i] = ItemType::SWORD;
+
+				// 最初の剣を生成
+				m_item->AddItem(m_itemSpawnPositions[i], m_itemTypes[i]);
 			}
 		}
-		// アイテムを拾った瞬間を検知
-		if (!isSwordActive && !m_isSwordCollected)
+		//　アイテムがアクティブだった場合の処理
+		if (m_isSwordSystemActive)
 		{
-			m_isSwordCollected = true;
-			m_swordRespawnTimer = 0.0f;
-		}
-		// アイテムののリスポーンタイマー処理
-		if (m_isSwordCollected)
-		{
-			m_swordRespawnTimer += elapsedTime;
-			if (m_swordRespawnTimer >= ITEM_SPAWN_TIMER)
-			{
-				// 剣を再出現させる
-				if (!m_itemSpawnPositions.empty())
-				{
-					// 最初の生成ポイントに固定して再出現
-					m_item->AddItem(m_itemSpawnPositions[0], ItemType::SWORD);
-				}
-				m_isSwordCollected = false;
-			}
-		}
-		// アイテムのチュートリアル表示
-		if (!m_isItemShown)
-		{
-			for (const auto& item : currentItems)
-			{
-				if (item.itemType != ItemType::SWORD || !item.isActive) continue;
+			// アイテムの処理
+			m_item->Update(player->GetCollision(), player);
 
-				// 当たり判定の作成
-				DirectX::SimpleMath::Vector3 itemHalf = item.scale * HALF_SIZE;
-				AABB itemCollider(item.position - itemHalf, item.position + itemHalf);
+			const auto& currentItems = m_item->GetItems();
+			bool isSwordActive = false;
 
-				// プレイヤーがアイテムに触れた瞬間
-				if (player->GetCollision().CheckAABBCollision(player->GetCollision(), itemCollider))
+			// フィールド上にアクティブなアイテムが存在するかチェック
+			for (const auto& it : currentItems)
+			{
+				if (it.itemType == ItemType::SWORD && it.isActive)
 				{
-					m_isItemShown = true;
+					isSwordActive = true;
 					break;
 				}
 			}
+			// アイテムを拾った瞬間を検知
+			if (!isSwordActive && !m_isSwordCollected)
+			{
+				m_isSwordCollected = true;
+				m_swordRespawnTimer = 0.0f;
+			}
+			// アイテムののリスポーンタイマー処理
+			if (m_isSwordCollected)
+			{
+				m_swordRespawnTimer += elapsedTime;
+				if (m_swordRespawnTimer >= ITEM_SPAWN_TIMER)
+				{
+					// 剣を再出現させる
+					if (!m_itemSpawnPositions.empty())
+					{
+						// 最初の生成ポイントに固定して再出現
+						m_item->AddItem(m_itemSpawnPositions[0], ItemType::SWORD);
+					}
+					m_isSwordCollected = false;
+				}
+			}
+			// アイテムのチュートリアル表示
+			if (!m_isItemShown)
+			{
+				for (const auto& item : currentItems)
+				{
+					if (item.itemType != ItemType::SWORD || !item.isActive) continue;
+
+					// 当たり判定の作成
+					DirectX::SimpleMath::Vector3 itemHalf = item.scale * HALF_SIZE;
+					AABB itemCollider(item.position - itemHalf, item.position + itemHalf);
+
+					// プレイヤーがアイテムに触れた瞬間
+					if (player->GetCollision().CheckAABBCollision(player->GetCollision(), itemCollider))
+					{
+						m_isItemShown = true;
+						break;
+					}
+				}
+			}
 		}
 	}
+
 	// 地形との衝突判定
 	player->ResetFloorHit();
 	m_floor->Update(player, enemies);

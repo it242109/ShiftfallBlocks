@@ -149,6 +149,7 @@ private:
 	static const float MIN_DASH_STAMINA;			///< スタミナの最小値
 	static const float DASH_RECOVERY_THRESHOLD_RATIO;///< ダッシュ再開が可能になるスタミナの割合
 	static const float FALL_DEATH_THRESHOLD_Y;		///< 落下死と判定するY座標のしきい値
+	static const float FALLING_THRESHOLD;			///< 垂直速度が下向きであることを判定するしきい値
 	static const float HALF_SCALE;					///< 半分のサイズにする
 
 	static const float TOP_Y_OFFSET_THRESHOLD;		///< 判定対象とする床の高さの許容誤差

@@ -85,8 +85,6 @@ ResultScene::~ResultScene()
 */
 void ResultScene::Initialize()
 {
-	OutputDebugStringA("ResultScene::Initialize called\n");
-
 	// グローバル変数から結果とステージを取得
 	m_result = s_globalResult;
 	m_stage = GetGlobalStage();
@@ -220,10 +218,21 @@ void ResultScene::Update(float elapsedTime)
 				if (m_menu->m_menuIndex == 0) 
 				{
 					// 次へ
-					if (m_stage == ResultStage::TUTORIAL) ResultScene::SetGlobalStage(ResultStage::FIRST);
-					else if (m_stage == ResultStage::FIRST) ResultScene::SetGlobalStage(ResultStage::SECOND);
-					else if (m_stage == ResultStage::SECOND) ResultScene::SetGlobalStage(ResultStage::THIRD);
-				
+					if (m_stage == ResultStage::TUTORIAL)
+					{
+						ResultScene::SetGlobalStage(ResultStage::FIRST);
+						SelectScene::SetCurrentStageFilePathByIndex(1);
+					}
+					else if (m_stage == ResultStage::FIRST)
+					{
+						ResultScene::SetGlobalStage(ResultStage::SECOND);
+						SelectScene::SetCurrentStageFilePathByIndex(2);
+					}
+					else if (m_stage == ResultStage::SECOND)
+					{
+						ResultScene::SetGlobalStage(ResultStage::THIRD);
+						SelectScene::SetCurrentStageFilePathByIndex(3);
+					}				
 					ChangeLoadingScene<StageScene, LoadScene>();
 				}
 				else if (m_menu->m_menuIndex == 1) 
@@ -433,7 +442,10 @@ void ResultScene::UpdateLastTime() const
 {
 	// ステージ名のキーを取得
 	std::string key = StageEnumToString(m_stage);
+
+#ifdef DEBUG
 	OutputDebugStringA(("Stage Key = " + key + "\n").c_str());
+#endif // DEBUG
 
 	// 現在のセーブデータを読み込む
 	json j;

@@ -87,6 +87,4 @@ private:
 
 	// タイマー値
 	float m_clearTime = 0.0f;
-
-
 };

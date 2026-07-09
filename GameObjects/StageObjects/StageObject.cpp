@@ -188,7 +188,7 @@ void StageObject::ColliderLine()
 		m_primitiveBatch->DrawLine({ platformCorners[2], lineColor }, { platformCorners[6], lineColor });
 		m_primitiveBatch->DrawLine({ platformCorners[3], lineColor }, { platformCorners[7], lineColor });
 
-		/*/////////////////////////////////////ü‚Ì•`‰æ///////////////////////////////////////////*/
+		/*/////////////////////////////////////////////////////////////////////////////////////////*/
 	}
 
 	m_primitiveBatch->End();

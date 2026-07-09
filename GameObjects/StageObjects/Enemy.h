@@ -12,13 +12,12 @@
 
 #include "GameObjects/Effects/Shadow.h"
 
-// 列挙体の宣言
+// 列挙体の管理：敵の状態
 enum class EnemyState
 {
-	Idle,	///< 待機
-	Chase,	///< 追尾
-	Attack,	///< 攻撃
-	Dead	///< 死亡
+	Idle,	// 待機
+	Chase,	// 追尾
+	Dead	// 死亡
 };
 
 class Enemy
@@ -120,7 +119,7 @@ private:
 	static const float SEARCH_RANGE;				///< 索敵範囲のしきい値
 	static const float NEAR_ZERO_THRESHOLD;			///< 最小距離のしきい値
 	static const float MOVE_SPEED;					///< 移動速度
-	
+	static const float FALLING_THRESHOLD;			///< 垂直速度が下向きであることを判定するしきい値
 	static const float HALF_SCALE;					///< 半分のサイズにする
 
 	static const float TOP_Y_OFFSET_THRESHOLD;		///< 判定対象とする床の高さの許容誤差

@@ -210,22 +210,27 @@ void Switch::ColliderLine()
             { s_col.min.x, s_col.max.y, s_col.max.z },
         };
 
-        // ü‚Ì•`‰æ
+        /*/////////////////////////////////////ü‚Ì•`‰æ///////////////////////////////////////////*/
+
+        // ‘O–Ê‚Ìü‚ğ•`‰æ
         m_primitiveBatch->DrawLine({ switchCorners[0], lineColor }, { switchCorners[1], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[1], lineColor }, { switchCorners[2], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[2], lineColor }, { switchCorners[3], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[3], lineColor }, { switchCorners[0], lineColor });
 
+        // ”w–Ê‚Ìü‚ğ•`‰æ
         m_primitiveBatch->DrawLine({ switchCorners[4], lineColor }, { switchCorners[5], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[5], lineColor }, { switchCorners[6], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[6], lineColor }, { switchCorners[7], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[7], lineColor }, { switchCorners[4], lineColor });
 
+        // ‘O–Ê‚Æ”w–Ê‚ğ‚Â‚È‚®ü‚ğ•`‰æ
         m_primitiveBatch->DrawLine({ switchCorners[0], lineColor }, { switchCorners[4], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[1], lineColor }, { switchCorners[5], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[2], lineColor }, { switchCorners[6], lineColor });
         m_primitiveBatch->DrawLine({ switchCorners[3], lineColor }, { switchCorners[7], lineColor });
-    }
 
+        /*////////////////////////////////////////////////////////////////////////////////////////*/
+    }
     m_primitiveBatch->End();
 }

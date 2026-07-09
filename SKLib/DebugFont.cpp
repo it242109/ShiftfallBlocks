@@ -117,7 +117,7 @@ void DebugFont3D::Render(
 	const DirectX::SimpleMath::Matrix& view,
 	const DirectX::SimpleMath::Matrix& proj)
 {
-	// スクリーン座標はY軸が＋－逆なので
+	// ビュー行列のY軸を反転する行列を作成する
 	DirectX::SimpleMath::Matrix invertY = DirectX::SimpleMath::Matrix::CreateScale(1.0f, -1.0f, 1.0f);
 
 	// ビュー行列の回転を打ち消す行列を作成する

@@ -7,17 +7,17 @@
 class TutorialManager
 {
 public:
-	// 列挙体の定義
+	// 列挙体の管理 -------------------------------------------------------------------------
 	enum class TutorialState
 	{
-		NONE,
-		MOVEMENT,
-		MOUSE,
-		LIFTANDDROP,
-		SWITCH,
-		ITEM,
-		ATTACK,
-		FINISHED
+		NONE,		// デフォルト
+		MOVEMENT,	// 移動操作
+		MOUSE,		// マウス操作
+		LIFTANDDROP,// 持ち上げ／設置操作
+		SWITCH,		// スイッチについての説明
+		ITEM,		// アイテムについての説明
+		ATTACK,		// 攻撃操作
+		FINISHED	// チュートリアル終わり
 	};
 public:
 	// ゲッター／セッター -------------------------------------------------------------------

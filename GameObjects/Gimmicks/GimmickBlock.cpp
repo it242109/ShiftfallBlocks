@@ -323,13 +323,15 @@ void GimmickBlock::ColliderLine()
             { m_collision.min.x, m_collision.max.y, m_collision.max.z }
         };
 
-        // ü‚Ì•`‰æˆ—i‘O–Êj
+        /*/////////////////////////////////////ü‚Ì•`‰æ///////////////////////////////////////////*/
+
+        // ‘O–Ê‚Ìü‚ğ•`‰æ
         m_primitiveBatch->DrawLine({ platCorners[0], lineColor }, { platCorners[1], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[1], lineColor }, { platCorners[2], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[2], lineColor }, { platCorners[3], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[3], lineColor }, { platCorners[0], lineColor });
 
-        // ü‚Ì•`‰æˆ—i”w–Êj
+        // ”w–Ê‚Ìü‚ğ•`‰æ
         m_primitiveBatch->DrawLine({ platCorners[4], lineColor }, { platCorners[5], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[5], lineColor }, { platCorners[6], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[6], lineColor }, { platCorners[7], lineColor });
@@ -340,6 +342,8 @@ void GimmickBlock::ColliderLine()
         m_primitiveBatch->DrawLine({ platCorners[1], lineColor }, { platCorners[5], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[2], lineColor }, { platCorners[6], lineColor });
         m_primitiveBatch->DrawLine({ platCorners[3], lineColor }, { platCorners[7], lineColor });
+
+        /*////////////////////////////////////////////////////////////////////////////////////////*/
     }
 
     m_primitiveBatch->End();

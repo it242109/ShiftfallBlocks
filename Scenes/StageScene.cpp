@@ -30,6 +30,9 @@ const float StageScene::FONT_INITIAL_POSITION_X = -100.0f;	///< クリア／ゲームオ
 const float StageScene::FONT_X_MAX = 250.0f;				///< クリア／ゲームオーバーフォントXの最大数値
 const float StageScene::FONT_SPEED = 700.0f;				///< クリア／ゲームオーバーフォントの移動速度
 
+const float StageScene::FADE_SPEED = 1.0f;					///< テレポートによるフェード速度
+const float StageScene::OPAQUE_OVERLAY_ALPHA = 0.95f;		///< 不透明のオーバーレイのα値
+
 const float StageScene::MENU_DEFAULT_POSITION_X = 600.0f;	///< メニューのデフォルトの位置X
 const float StageScene::MENU_DEFAULT_SCALE_X = 0.8f;		///< メニューのデフォルトの大きさX
 const float StageScene::MENU_DEFAULT_SCALE_Y = 0.8f;		///< メニューのデフォルトの大きさY
@@ -54,10 +57,11 @@ StageScene::StageScene()
 	:
 	m_isPause(false),
 	m_isTeleporting(false),
-	m_timer(0.0f),
+	m_timer(0.0f), 
 	m_teleportTimer(0.0f),
 	m_number(),
 	m_isDebugMode(false),
+	m_teleportOverlayAlpha(0.0f),
 	m_waitTimer(0.0f),	
 	m_isGoalWaiting(false),
 	m_isGameOverWaiting(false),
@@ -128,12 +132,10 @@ void StageScene::Initialize()
     // プレイヤーとテレポート時の処理を渡してロード
     m_stage->Load(filePath, m_player.get(), [this]() {
         m_isTeleporting = true;
+		m_teleportOverlayAlpha = 0.0f;
         m_teleportTimer = TELEPORT_COOLDOWN_TIME;
         SoundManager::GetInstance().Play(L"TELEPORT");
     });
-
-    //// プレイヤーの初期化
-    //m_player->Initialize(PLAYER_INITIAL_POSITION);
 
     // タスクマネージャーの初期化／数字の初期化
     m_number = m_taskManager.AddTask<Number>(&m_spriteBatch, m_numberSRV.GetAddressOf());
@@ -178,13 +180,20 @@ void StageScene::Update(float elapsedTime)
 	if (m_isTimerActive && !m_isPause) m_timer += elapsedTime;
 	m_number->SetTimer(static_cast<int>(m_timer));
 	m_number->Update(elapsedTime);
-	// テレポートタイマーの更新
+	// テレポート処理の更新
 	if (m_isTeleporting)
 	{
+		// テレポートタイマー
 		m_teleportTimer -= elapsedTime;
 		if (m_teleportTimer <= TIMER_END_THRESHOLD)
 		{
 			m_isTeleporting = false;
+		}
+		// テレポートによるフェードインのα値
+		m_teleportOverlayAlpha += FADE_SPEED * elapsedTime;
+		if (m_teleportOverlayAlpha > OPAQUE_OVERLAY_ALPHA)
+		{
+			m_teleportOverlayAlpha = OPAQUE_OVERLAY_ALPHA;
 		}
 		// 渦巻パーティクルの更新
 		m_swirlParticle->Update(elapsedTime);
@@ -414,7 +423,10 @@ void StageScene::Update(float elapsedTime)
 	}
 
 	// カメラの更新
-	m_gameCamera->Update(m_player->GetPosition(), m_stage.get());
+	if (!m_isGoalWaiting && !m_isGameOverWaiting && !m_isTeleporting)
+	{
+		m_gameCamera->Update(m_player->GetPosition(), m_stage.get());
+	}	
 	m_player->SetCameraHorizontalAngle(m_gameCamera->GetYAngle());
 	auto eye = m_gameCamera->GetEyePosition();
 	auto target = m_gameCamera->GetTargetPosition();
@@ -495,6 +507,7 @@ void StageScene::Render()
 	// 渦巻パーティクルの描画
 	if (m_isTeleporting) m_swirlParticle->Render();
 
+	// ダッシュパーティクルの描画
 	m_dashParticle->Render(m_view, m_proj);
 
 	// ビューとプロジェクション行列を設定
@@ -511,19 +524,6 @@ void StageScene::Render()
 	// 画像の描画（スプライトバッチを使用）
 	m_spriteBatch->Begin(DirectX::SpriteSortMode_Deferred, GetUserResources()->GetCommonStates()->NonPremultiplied());
 
-	m_spriteBatch->Draw(m_timeSRV.Get(), ScreenManager::Pos(480.0f, 60.0f), nullptr,
-		DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-		ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
-	if (!m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting)
-	{
-		m_spriteBatch->Draw(m_pauseKeySRV.Get(), ScreenManager::Pos(40.0f, 40.0f), nullptr,
-			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-			ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
-	}
-
-	// タスクマネージャーの描画処理
-	m_taskManager.Render();
-
 	// 画面全体の矩形
 	RECT fullscreenRect{};
 	fullscreenRect.left = 0;
@@ -531,13 +531,23 @@ void StageScene::Render()
 	fullscreenRect.right = (LONG)windowSize.right;
 	fullscreenRect.bottom = (LONG)windowSize.bottom;
 
-	// ポーズメニュは画面を暗くする
+	// ポーズメニューは画面を暗くする
 	if (m_isPause)
 	{
 		// 黒色で半透明
 		DirectX::SimpleMath::Color darkColor(0.0f, 0.0f, 0.0f, 0.5f);
 		// 描画
 		m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, darkColor);
+	}
+	// ポータルでワープ中
+	if (m_isTeleporting)
+	{
+		DirectX::SimpleMath::Color darkPurpleColor(0.3f,0.0f,0.4f,m_teleportOverlayAlpha);
+
+		m_spriteBatch->Draw(
+			m_overlayTexture.Get(),
+			fullscreenRect,
+			darkPurpleColor);
 	}
 	// クリア時
 	if (m_isGoalWaiting)
@@ -555,7 +565,32 @@ void StageScene::Render()
 		// 描画
 		m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, darkoOpaqueColor);
 	}
+
+	// タイムの画像を描画
+	m_spriteBatch->Draw(m_timeSRV.Get(), ScreenManager::Pos(480.0f, 60.0f), nullptr,
+		DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+		ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+	// タスクマネージャーの描画処理
+	m_taskManager.Render();
+
+	// 「Ｔキー：ポーズ」の画像を描画
+	if (!m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting )
+	{
+		m_spriteBatch->Draw(m_pauseKeySRV.Get(), ScreenManager::Pos(40.0f, 40.0f), nullptr,
+			DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+			ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+	}
 	m_spriteBatch->End();
+
+
+	// UIの描画
+	if (!m_isPause && !m_isTeleporting && !m_isGoalWaiting && !m_isGameOverWaiting)
+	{
+		m_healthUI->Render();
+		m_staminaUI->Render();
+		m_swordUI->Render();
+		m_shieldUI->Render();
+	}
 
 	// ステージクリアのフォントの描画
 	if (m_isGoalWaiting)
@@ -590,15 +625,6 @@ void StageScene::Render()
 		m_pauseMenu->Render();
 
 		m_spriteBatch->End();
-	}
-
-	// UIの描画
-	if (!m_isPause && !m_isGoalWaiting && !m_isGameOverWaiting)
-	{
-		m_healthUI->Render();
-		m_staminaUI->Render();
-		m_swordUI->Render();
-		m_shieldUI->Render();
 	}
 
 	// デバッグモードでの描画

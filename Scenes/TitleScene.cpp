@@ -16,18 +16,18 @@ const DirectX::SimpleMath::Vector3 TitleScene::GIMMICKBLOCK_SCALE = { 0.7f,0.7f,
 const DirectX::SimpleMath::Vector3 TitleScene::FLOOR_POSITION = { 0.0f,0.0f,0.0f };			///< 床の位置
 const DirectX::SimpleMath::Vector3 TitleScene::FLOOR_SCALE = { 20.0f,1.0f,20.0f };			///< 床の大きさ
 
-const float TitleScene::WALL_OFFSET_DIST = 15.0f;	///<　壁オブジェクトの中心からの距離
-const float TitleScene::WALL_THICKNESS = 10.0f;		///< 壁の厚み
-const float TitleScene::WALL_HEIGHT = 30.0f;		///< 壁の高さ
-const float TitleScene::WALL_LENGTH = 20.0f;		///< 壁の長さ
+const float TitleScene::WALL_OFFSET_DIST = 15.0f;			///<　壁オブジェクトの中心からの距離
+const float TitleScene::WALL_THICKNESS = 10.0f;				///< 壁の厚み
+const float TitleScene::WALL_HEIGHT = 30.0f;				///< 壁の高さ
+const float TitleScene::WALL_LENGTH = 20.0f;				///< 壁の長さ
 
 const float TitleScene::MENU_DEFAULT_POSITION_X = 1000.0f;	///< メニューのデフォルトの位置X
 const float TitleScene::MENU_DEFAULT_SCALE_X = 0.8f;		///< メニューのデフォルトの大きさX
 const float TitleScene::MENU_DEFAULT_SCALE_Y = 0.8f;		///< メニューのデフォルトの大きさY
 
-const float TitleScene::FIELD_OF_VIEW_DEGREES = 45.0f;	///< 視野角
-const float TitleScene::NEAR_PLANE_DISTANCE = 0.1f;		///< カメラの最前面のクリップ距離
-const float TitleScene::FAR_PLANE_DISTANCE = 100.0f;	///< カメラの最遠面のクリップ距離
+const float TitleScene::FIELD_OF_VIEW_DEGREES = 45.0f;		///< 視野角
+const float TitleScene::NEAR_PLANE_DISTANCE = 0.1f;			///< カメラの最前面のクリップ距離
+const float TitleScene::FAR_PLANE_DISTANCE = 100.0f;		///< カメラの最遠面のクリップ距離
 
 /*
 * @brief コンストラクタ

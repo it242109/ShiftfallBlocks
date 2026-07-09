@@ -76,6 +76,9 @@ private:
 	static const float FONT_X_MAX;				///< クリア／ゲームオーバーフォントXの最大数値
 	static const float FONT_SPEED;				///< クリア／ゲームオーバーフォントの移動速度
 
+	static const float FADE_SPEED;				///< テレポートによるフェード速度
+	static const float OPAQUE_OVERLAY_ALPHA;	///<　不透明のオーバーレイのα値
+
 	static const float MENU_DEFAULT_POSITION_X; ///< メニューのデフォルトの位置X
 	static const float MENU_DEFAULT_SCALE_X;	///< メニューのデフォルトの大きさX
 	static const float MENU_DEFAULT_SCALE_Y;	///< メニューのデフォルトの大きさY
@@ -145,6 +148,9 @@ private:
 	float m_timer;
 	float m_teleportTimer;
 	float m_waitTimer;
+
+	// テレポートによるフェードインのα値
+	float m_teleportOverlayAlpha;
 
 	// スプライトバッチのポインタ
 	std::unique_ptr <DirectX::SpriteBatch> m_spriteBatch;

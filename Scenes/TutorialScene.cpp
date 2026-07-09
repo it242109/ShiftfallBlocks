@@ -3,8 +3,6 @@
 //
 // チュートリアルステージシーンクラス
 //--------------------------------------------------------------------------------------
-// 信用できないのに擁護できんわ➡暴言率マイナス100％
-//                              褒め言葉率10000000％
 #include "pch.h"
 #include "TutorialScene.h"
 #include "SKLib/ReadData.h"
@@ -22,13 +20,16 @@ const DirectX::SimpleMath::Vector2 TutorialScene::NUMBER_POSITION = { 570.0f, 60
 const float TutorialScene::FALLTODEATH_HEIGHT = -15.0f; 	    ///< 落下死する高さ
 const int TutorialScene::ATTACK_COUNT = 1;					    ///< 攻撃回数
 const float TutorialScene::WAIT_TIME = 3.0f;				    ///< ゴール後の待ち時間
-const float TutorialScene::TELEPORT_COOLDOWN_TIME = 2.0f;	        ///< テレポートした後のクールダウンタイム
-const float TutorialScene::TIMER_END_THRESHOLD = 0.0f;			    ///< タイマーが終了したと判定する基準値
-const float TutorialScene::INVINCIBILITY_END_THRESHOLD = 0.0f;	    ///< 無敵時間が終了した基準値
+const float TutorialScene::TELEPORT_COOLDOWN_TIME = 2.0f;	    ///< テレポートした後のクールダウンタイム
+const float TutorialScene::TIMER_END_THRESHOLD = 0.0f;			///< タイマーが終了したと判定する基準値
+const float TutorialScene::INVINCIBILITY_END_THRESHOLD = 0.0f;	///< 無敵時間が終了した基準値
 
 const float TutorialScene::FONT_INITIAL_POSITION_X = -100.0f;   ///< クリアフォントの初期位置
 const float TutorialScene::FONT_X_MAX = 250.0f;			        ///< クリアフォントXの最大数値
 const float TutorialScene::FONT_SPEED = 700.0f;			        ///< クリアフォントの移動速度
+
+const float TutorialScene::FADE_SPEED = 1.0f;					///< テレポートによるフェード速度
+const float TutorialScene::OPAQUE_OVERLAY_ALPHA = 0.95f;		///< 不透明のオーバーレイのα値
 
 const float TutorialScene::MENU_DEFAULT_POSITION_X = 600.0f;    ///< メニューのデフォルトの位置X
 const float TutorialScene::MENU_DEFAULT_SCALE_X = 0.8f;	        ///< メニューのデフォルトの大きさX
@@ -39,6 +40,10 @@ const float TutorialScene::DEFAULT_SRV_SCALE_Y = 1.0f;		    ///< ＳＲＶのデ
 const float TutorialScene::FIELD_OF_VIEW_DEGREES = 45.0f;	    ///< 視野角
 const float TutorialScene::NEAR_PLANE_DISTANCE = 0.1f;		    ///< カメラの最前面のクリップ距離
 const float TutorialScene::FAR_PLANE_DISTANCE = 100.0f;	        ///< カメラの最遠面のクリップ距離
+
+const int TutorialScene::GAMEOVER_LIFE_COUNT = 0;		        ///< ゲームオーバーとなる残機の数
+const int TutorialScene::MAX_LIVES = 3;                         ///< 最大残機数   
+
 
 /*
 * @brief コンストラクタ
@@ -55,6 +60,7 @@ TutorialScene::TutorialScene()
 	m_teleportTimer(0.0f),
 	m_number(),
 	m_isDebugMode(false),
+    m_teleportOverlayAlpha(0.0f),
     m_isStartTutorial(false),
     m_isTutorialActive(false),
     m_isLiftTutorialShown(false),
@@ -131,6 +137,7 @@ void TutorialScene::Initialize()
     // プレイヤーとテレポート時の処理を渡してロード
     m_stage->Load(filePath, m_player.get(), [this]() {
         m_isTeleporting = true;
+        m_teleportOverlayAlpha = 0.0f;
         m_teleportTimer = TELEPORT_COOLDOWN_TIME;
         SoundManager::GetInstance().Play(L"TELEPORT");
         });
@@ -191,9 +198,9 @@ void TutorialScene::Update(float elapsedTime)
     const auto& playerCollider = m_player->GetCollision();
 
     // ステージの更新
-    if (!m_isPause && !m_isGoalWaiting )//&& !m_tutorialManager->IsPlayerLocked())
+    if (!m_isPause && !m_isGoalWaiting)
     {
-        m_stage->Update(elapsedTime, m_player.get(), m_enemies, m_isTeleporting);
+        m_stage->Update(elapsedTime, m_player.get(), m_enemies, m_isTeleporting, m_tutorialManager->IsPlayerLocked());
     }
 
     // タイマーの更新
@@ -203,10 +210,17 @@ void TutorialScene::Update(float elapsedTime)
     // テレポートタイマーの更新
     if (m_isTeleporting)
     {
+        // テレポートタイマー
         m_teleportTimer -= elapsedTime;
         if (m_teleportTimer <= TIMER_END_THRESHOLD)
         {
             m_isTeleporting = false;
+        }
+        // テレポートによるフェードインのα値
+        m_teleportOverlayAlpha += FADE_SPEED * elapsedTime;
+        if (m_teleportOverlayAlpha > OPAQUE_OVERLAY_ALPHA)
+        {
+            m_teleportOverlayAlpha = OPAQUE_OVERLAY_ALPHA;
         }
         // 渦巻パーティクルの更新
         m_swirlParticle->Update(elapsedTime);
@@ -296,6 +310,16 @@ void TutorialScene::Update(float elapsedTime)
         }
         m_pauseMenu->Update();
         return;
+    }
+
+    // ライフが０になったら
+    if (m_player->IsDead())
+    {
+        if (m_player->GetLives() <= GAMEOVER_LIFE_COUNT)
+        {
+            // チュートリアルなので残機をすべて復活
+            m_player->SetLives(MAX_LIVES);
+        }
     }
 
     // プレイヤーの更新
@@ -491,7 +515,10 @@ void TutorialScene::Update(float elapsedTime)
     }
 
     // カメラの更新
-    m_gameCamera->Update(m_player->GetPosition(), m_stage.get());
+    if (!m_isGoalWaiting  && !m_isTeleporting )
+    {
+        m_gameCamera->Update(m_player->GetPosition(), m_stage.get());
+    }	    
     m_player->SetCameraHorizontalAngle(m_gameCamera->GetYAngle());
     auto eye = m_gameCamera->GetEyePosition();
     auto target = m_gameCamera->GetTargetPosition();
@@ -582,33 +609,6 @@ void TutorialScene::Render()
     // 画像の描画（スプライトバッチを使用）
     m_spriteBatch->Begin(DirectX::SpriteSortMode_Deferred, GetUserResources()->GetCommonStates()->NonPremultiplied());
 
-    m_spriteBatch->Draw(m_timeSRV.Get(), ScreenManager::Pos(480.0f, 60.0f), nullptr,
-        DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-        ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
-    if (!m_isPause && !m_isGoalWaiting)
-    {
-        m_spriteBatch->Draw(m_pauseKeySRV.Get(), ScreenManager::Pos(40.0f, 40.0f), nullptr,
-            DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-            ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
-    
-        // 操作説明の描画
-        if (m_showExplanationFirst)
-        {
-            m_spriteBatch->Draw(m_explanationFirstSRV.Get(), ScreenManager::Pos(900.0f, 30.0f), nullptr,
-                DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-                ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
-        }
-        if (m_showExplanationSecond)
-        {
-            m_spriteBatch->Draw(m_explanationSecondSRV.Get(), ScreenManager::Pos(900.0f, 30.0f), nullptr,
-                DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
-                ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
-        }
-    }
-  
-    // タスクマネージャーの描画処理
-    m_taskManager.Render();
-
     // 画面全体の矩形
     RECT fullscreenRect{};
     fullscreenRect.left = 0;
@@ -624,6 +624,16 @@ void TutorialScene::Render()
         // 描画
         m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, darkColor);
     }
+    // ポータルでワープ中
+    if (m_isTeleporting)
+    {
+        DirectX::SimpleMath::Color darkPurpleColor(0.3f, 0.0f, 0.4f, m_teleportOverlayAlpha);
+
+        m_spriteBatch->Draw(
+            m_overlayTexture.Get(),
+            fullscreenRect,
+            darkPurpleColor);
+    }
     // クリア時
     if (m_isGoalWaiting)
     {
@@ -631,6 +641,45 @@ void TutorialScene::Render()
         DirectX::SimpleMath::Color darkColor(1.0f, 1.0f, 1.0f, 0.5f);
         // 描画
         m_spriteBatch->Draw(m_overlayTexture.Get(), fullscreenRect, darkColor);
+    }
+
+    // タイムの画像を描画
+    m_spriteBatch->Draw(m_timeSRV.Get(), ScreenManager::Pos(480.0f, 60.0f), nullptr,
+        DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+        ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+    // タスクマネージャーの描画処理
+    m_taskManager.Render();
+
+    if (!m_isPause && !m_isGoalWaiting)
+    {
+        // 「Ｔキー：ポーズ」の画像を描画
+        m_spriteBatch->Draw(m_pauseKeySRV.Get(), ScreenManager::Pos(40.0f, 40.0f), nullptr,
+            DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+            ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+
+        // 操作説明の描画
+        if (m_showExplanationFirst)
+        {
+            m_spriteBatch->Draw(m_explanationFirstSRV.Get(), ScreenManager::Pos(900.0f, 30.0f), nullptr,
+                DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+                ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+        }
+        if (m_showExplanationSecond)
+        {
+            m_spriteBatch->Draw(m_explanationSecondSRV.Get(), ScreenManager::Pos(900.0f, 30.0f), nullptr,
+                DirectX::Colors::White, 0.0f, DirectX::SimpleMath::Vector2::Zero,
+                ScreenManager::Scale(DEFAULT_SRV_SCALE_X, DEFAULT_SRV_SCALE_Y));
+        }
+    }
+
+
+    // UIの描画
+    if (!m_isPause && !m_tutorialManager->IsPlayerLocked() && !m_isGoalWaiting && !m_isTeleporting)
+    {
+        m_healthUI->Render();
+        m_staminaUI->Render();
+        m_swordUI->Render();
+        m_shieldUI->Render();
     }
 
     // チュートリアル操作説明の描画
@@ -702,16 +751,6 @@ void TutorialScene::Render()
         m_pauseMenu->Render();
 
         m_spriteBatch->End();
-    }
-
-
-    // UIの描画
-    if (!m_isPause && !m_tutorialManager->IsPlayerLocked() && !m_isGoalWaiting)
-    {
-        m_healthUI->Render();
-        m_staminaUI->Render();
-        m_swordUI->Render();
-        m_shieldUI->Render();
     }
 
     // デバッグモードでの描画
@@ -817,7 +856,6 @@ void TutorialScene::ResetGame()
     {
         // カメラの角度・距離の再設定
         m_gameCamera->SetAngle(DirectX::XMConvertToRadians(0.0f), DirectX::XMConvertToRadians(-10.0f));
-        m_gameCamera->SetDistance(8.0f);
         // プレイヤー位置でカメラ行列を計算
         m_gameCamera->Update(m_player->GetPosition(), m_stage.get());
         m_player->SetCameraHorizontalAngle(m_gameCamera->GetYAngle());

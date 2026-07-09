@@ -13,7 +13,7 @@ const float Enemy::FALL_SPEED = -3.0f;			///< 落下速度
 const float Enemy::SEARCH_RANGE = 15.0f;		///< 索敵範囲のしきい値
 const float Enemy::NEAR_ZERO_THRESHOLD = 0.1f;	///< 最小距離のしきい値
 const float Enemy::MOVE_SPEED = 0.03f;			///< 移動速度
-
+const float Enemy::FALLING_THRESHOLD = 0.0f;	///< 垂直速度が下向きであることを判定するしきい値
 const float Enemy::HALF_SCALE = 0.5f;			///< 半分のサイズにする
 
 const float Enemy::TOP_Y_OFFSET_THRESHOLD = 0.5f;	///< 判定対象とする床の高さの許容誤差
@@ -25,6 +25,7 @@ const float Enemy::MIN_SHADOW_SCALE = 0.2f;			///< 影の最小スケール
 const float Enemy::FIELD_OF_VIEW_DEGREES = 45.0f;	///< 視野角
 const float Enemy::NEAR_PLANE_DISTANCE = 0.1f;		///< カメラの最前面のクリップ距離
 const float Enemy::FAR_PLANE_DISTANCE = 100.0f;		///< カメラの最遠面のクリップ距離
+
 /*
 * @brief コンストラクタ
 *
@@ -370,7 +371,7 @@ void Enemy::RenderShadow()
 				if (enemyX >= posList[i].x - halfWidth && enemyX <= posList[i].x + halfWidth &&
 					enemyZ >= posList[i].z - halfDepth && enemyZ <= posList[i].z + halfDepth)
 				{
-					float topY = posList[i].y + (scaleList[i].y * 0.5f);
+					float topY = posList[i].y + (scaleList[i].y * HALF_SCALE);
 					// 足元より少し上までの高さにあり、かつ現在の一番高い床よりも高い場合
 					if (topY <= enemyY + TOP_Y_OFFSET_THRESHOLD && topY > closestSurfaceY)
 					{
@@ -469,16 +470,16 @@ void Enemy::UpdateCollision(const AABB& collision, const DirectX::SimpleMath::Ve
 		// 最も小さい重なり方向に押し戻す
 		if (overlap.y <= overlap.x && overlap.y <= overlap.z)
 		{
-			float enemyBottom = m_enemyPosition.y - (m_enemyScale.y * 0.5f);
-			float objectTop = position.y + (collision.max.y - collision.min.y) * 0.5f;
+			float enemyBottom = m_enemyPosition.y - (m_enemyScale.y * HALF_SCALE);
+			float objectTop = position.y + (collision.max.y - collision.min.y) * HALF_SCALE;
 
 			// 着地の許容範囲
 			const float landingThreshold = 0.2f;
 
 			// 上から着地した場合
-			if (enemyBottom >= objectTop - landingThreshold && m_verticalVelocity <= 0.0f)
+			if (enemyBottom >= objectTop - landingThreshold && m_verticalVelocity <= FALLING_THRESHOLD)
 			{
-				m_enemyPosition.y = objectTop + (m_enemyScale.y * 0.5f);
+				m_enemyPosition.y = objectTop + (m_enemyScale.y * HALF_SCALE);
 
 				// フラグ更新
 				m_floorHit = true;
@@ -623,6 +624,8 @@ void Enemy::ColliderLine()
 		{ m_damageCollision.min.x, m_damageCollision.max.y, m_damageCollision.max.z }
 	};
 
+	/*/////////////////////////////////////線の描画///////////////////////////////////////////*/
+
 	// 前面の線を描画
 	m_primitiveBatch->DrawLine({ enemyCorners[0], lineColorA }, { enemyCorners[1], lineColorA });
 	m_primitiveBatch->DrawLine({ enemyCorners[1], lineColorA }, { enemyCorners[2], lineColorA });
@@ -655,6 +658,8 @@ void Enemy::ColliderLine()
 	m_primitiveBatch->DrawLine({ damageCorners[1], lineColorB }, { damageCorners[5], lineColorB });
 	m_primitiveBatch->DrawLine({ damageCorners[2], lineColorB }, { damageCorners[6], lineColorB });
 	m_primitiveBatch->DrawLine({ damageCorners[3], lineColorB }, { damageCorners[7], lineColorB });
+
+	/*///////////////////////////////////////////////////////////////////////////////////////////*/
 
 	m_primitiveBatch->End();
 }

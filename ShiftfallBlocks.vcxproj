@@ -203,6 +203,7 @@
     <ClInclude Include="GameObjects\UIs\Menu.h" />
     <ClInclude Include="GameObjects\UIs\ShieldUI.h" />
     <ClInclude Include="GameObjects\UIs\StaminaUI.h" />
+    <ClInclude Include="GameObjects\StageType.h" />
     <ClInclude Include="Resources\json.hpp" />
     <ClInclude Include="Scenes\TutorialScene.h" />
     <ClInclude Include="SKLib\RenderTexture.h" />

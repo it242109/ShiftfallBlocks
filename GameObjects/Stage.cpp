@@ -21,15 +21,15 @@
 using json = nlohmann::json;
 
 // 定数の定義
-const float Stage::HALF_SCALE = 0.5f;									///< 半分のサイズにする
+const float Stage::HALF_SCALE = 0.5f;												///< 半分のサイズにする
 const DirectX::SimpleMath::Vector3 Stage::DEFAULT_BLOCK_SCALE(0.7f, 0.7f, 0.7f);	///< 生成するギミックブロックの標準サイズ
 const DirectX::SimpleMath::Vector3 Stage::DEFAULT_SWITCH_SCALE(1.0f, 1.0f, 1.0f);	///< スイッチオブジェクトの標準サイズ
 const DirectX::SimpleMath::Vector3 Stage::BLOCK_FOLLOW_OFFSET(0.0f, 1.0f, 0.0f);	///< ブロック追尾時の高さオフセット
-const int Stage::BLOCK_FOLLOW_SPEED_MULTIPLIER = 5;						///< ブロックの追従速度の倍率
-const float Stage::TELEPORT_DURATION = 2.0f;							///< テレポートの演出・クールダウン時間（秒）
-const float Stage::TIMER_END_THRESHOLD = 0.0f;							///< タイマー終了の基準値
-const DirectX::SimpleMath::Vector3 Stage::WORLD_UP_VECTOR(0, 1, 0);		///< 世界の真上を指す上方向ベクトル
-const float Stage::SELF_HIT_INIT_DIST = 0.1f;							///< レイ発射直後の自分自身への誤判定を防ぐための最小距離
+const int Stage::BLOCK_FOLLOW_SPEED_MULTIPLIER = 5;									///< ブロックの追従速度の倍率
+const float Stage::TELEPORT_DURATION = 2.0f;										///< テレポートの演出・クールダウン時間（秒）
+const float Stage::TIMER_END_THRESHOLD = 0.0f;										///< タイマー終了の基準値
+const DirectX::SimpleMath::Vector3 Stage::WORLD_UP_VECTOR(0, 1, 0);					///< 世界の真上を指す上方向ベクトル
+const float Stage::SELF_HIT_INIT_DIST = 0.1f;										///< レイ発射直後の自分自身への誤判定を防ぐための最小距離
 
 /*
 * @brief コンストラクタ
@@ -237,33 +237,41 @@ void Stage::Load(const std::string& filePath, Player* player, std::function<void
 	{
 		for (auto& sw : data["switches"])
 		{
+			// JSONデータから座標、スイッチの種類、対応する仕掛けのインデックスを取得
 			DirectX::SimpleMath::Vector3 pos = { sw["position"][0], sw["position"][1], sw["position"][2] };
 			std::string typeStr = sw["type"].get<std::string>();
 			int idx = sw["index"].get<int>();
 
+			// スイッチの種類と押された時に実行するコールバック関数を用意
 			SwitchTargetType stype = SwitchTargetType::SW_PLATFORM;
 			std::function<void()> action;
 
+			// 足場
 			if (typeStr == "SW_PLATFORM")
 			{
 				stype = SwitchTargetType::SW_PLATFORM;
 				action = [this, idx]() { m_isSwitchOn_PF[idx] = true; };
 			}
+			// ポータル
 			else if (typeStr == "SW_PORTAL")
 			{
 				stype = SwitchTargetType::SW_PORTAL;
 				action = [this, idx]() { m_isSwitchOn_Portal[idx] = true; };
 			}
+			// 扉を開くための鍵
 			else if (typeStr == "SW_KEY")
 			{
 				stype = SwitchTargetType::SW_KEY;
 				action = [this]() { m_isSwitchOn_Key = true; };
 			}
+			// アイテム
 			else if (typeStr == "SW_ITEM")
 			{
 				stype = SwitchTargetType::SW_ITEM;
 				action = [this, idx]() {
+					// アイテムの起動フラグ
 					m_isSwitchOn_Item[idx] = true;
+					// 連動する障害物を非表示にする
 					if (idx < m_itemGimmickBlockIndices.size())
 					{
 						size_t gIdx = m_itemGimmickBlockIndices[idx];
@@ -316,8 +324,10 @@ void Stage::Update(float elapsedTime, Player* player,
 			if (!block)
 				continue;
 
+			// プレイヤーとブロックが当たっているか
 			bool isColliding = block->CheckCollision(player->GetCollision());
 
+			// 右クリックで持ち上げ／設置の処理
 			if (isColliding && InputManager::Get().IsMousePressedRight())
 			{
 				// 持ち上げる

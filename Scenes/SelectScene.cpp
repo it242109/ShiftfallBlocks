@@ -14,12 +14,12 @@
 #include "ResultScene.h"
 
 // 定数の定義
-const float SelectScene::DEFAULT_POSITION_X = 0.0f;	///< デフォルトの位置X
-const float SelectScene::DEFAULT_POSITION_Y = 0.0f;	///< デフォルトの位置Y
-const float SelectScene::DEFAULT_SCALE_X = 0.7f;	///< デフォルトの大きさX
-const float SelectScene::DEFAULT_SCALE_Y = 0.7f;	///< デフォルトの大きさY
+const float SelectScene::DEFAULT_POSITION_X = 0.0f;					///< デフォルトの位置X
+const float SelectScene::DEFAULT_POSITION_Y = 0.0f;					///< デフォルトの位置Y
+const float SelectScene::DEFAULT_SCALE_X = 0.7f;					///< デフォルトの大きさX
+const float SelectScene::DEFAULT_SCALE_Y = 0.7f;					///< デフォルトの大きさY
 const float SelectScene::SELECTED_UI_OFFSET_POSITION_X = 900.0f;	///< 選択中のUI項目を移動させるX軸のオフセット量
-const int SelectScene::MAX_MENUINDEX = 4;			///< メニューインデックスの最大値
+const int SelectScene::MAX_MENUINDEX = 4;							///< メニューインデックスの最大値
 
 // 静的変数の実体定義
 static std::string s_currentStageFilePath = "Resources/Stages/stage01.json";
@@ -68,6 +68,25 @@ SelectScene::~SelectScene()
 std::string SelectScene::GetCurrentStageFilePath()
 {
 	return s_currentStageFilePath;
+}
+
+/*
+* @brief ステージシーンからパスを取得
+*
+* @param[in]  nextStage 次のステージ
+*
+* @return なし
+*/
+void SelectScene::SetCurrentStageFilePathByIndex(int stageIndex)
+{
+	// 条件に一致していたら何もしない
+	if (stageIndex < 0 || stageIndex >= 4) return;
+
+	// 直接JSONファイルの構造に合わせてパスを決定
+	if (stageIndex == 0) s_currentStageFilePath = "Resources/Stages/tutorial.json";
+	else if (stageIndex == 1) s_currentStageFilePath = "Resources/Stages/stage01.json";
+	else if (stageIndex == 2) s_currentStageFilePath = "Resources/Stages/stage02.json";
+	else if (stageIndex == 3) s_currentStageFilePath = "Resources/Stages/stage03.json";
 }
 
 /*

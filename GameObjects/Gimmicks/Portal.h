@@ -8,7 +8,7 @@
 #include "SKLib/CollisionManager.h"
 #include "SKLib/SoundManager.h"
 
-// 列挙体の定義
+// 列挙体の管理：ポータルの戻る／進む
 enum class PortalTargetType
 {
 	MOVEON, // 進む
@@ -16,7 +16,7 @@ enum class PortalTargetType
 	NONE
 };
 
-// ポータルデータ
+// ポータルデータの管理
 struct PortalData
 {
 	DirectX::SimpleMath::Vector3 position;

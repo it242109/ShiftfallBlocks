@@ -13,7 +13,7 @@
 
 #include "GameObjects/StageObjects/Player.h"
 
-// 列挙体の管理
+// 列挙体の管理：アイテムの種類
 enum class ItemType
 {
 	SWORD,
@@ -21,6 +21,7 @@ enum class ItemType
 	NONE
 };
 
+// アイテムデータの管理
 struct ItemData
 {
 	DirectX::SimpleMath::Vector3 position = { 0.0f,0.0f,0.0f };	///< 位置

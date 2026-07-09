@@ -28,7 +28,7 @@ using json = nlohmann::json;
 class ResultScene : public SceneBase<UserResources>
 {
 public:
-	// 列挙体の定義 -------------------------------------------------------------------------
+	// 列挙体の管理 -------------------------------------------------------------------------
 	enum class ResultStage // 各ステージ
 	{
 		TUTORIAL,	// チュートリアル

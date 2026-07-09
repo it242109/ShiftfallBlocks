@@ -71,7 +71,7 @@ public:
 	void Load(const std::string& filePath, Player* player, std::function<void()> onTeleport);
 
 	// XVˆ—
-	void Update(float elapsedTime, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies, bool isTeleporting);
+	void Update(float elapsedTime, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies, bool isTeleporting, bool isPlayerLocked);
 
 	// •`‰æˆ—
 	void Render(ID3D11DeviceContext* context, const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj);

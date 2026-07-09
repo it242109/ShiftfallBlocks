@@ -8,6 +8,10 @@
 #include "GameObjects/StageObjects/StageObject.h"
 
 // 定数の定義
+const float Gate::INITIAL_X = 9999.0f;					///< 初期位置Ｘ（定数）
+
+const DirectX::SimpleMath::Vector3 Gate::DEFAULT_SCALE = { 2.2f,2.0f,1.0f };///< ゲートのデフォルトの大きさ
+
 const float Gate::MAX_GATE_OPEN = 3.0f;					///< ゲートの最大開き具合
 const float Gate::MIN_GATE_OPEN = 0.0f;					///< ゲートの最小開き具合
 const float Gate::OPEN_CLOSE_SPEED = 0.07f;				///< ゲートの開閉速度
@@ -15,9 +19,10 @@ const float Gate::GATE_COLLISION_SIZE_SCALE = 1.0f;		///< ゲートの当たり判定の大
 const float Gate::GATE_COLLISION_WIDTH_SCALE = 0.5f;	///< ゲートの当たり判定の幅
 const float Gate::GATE_COLLISION_DEPTH_SCALE = 0.3f;	///< ゲートの当たり判定の奥行
 
-const float Gate::FIELD_OF_VIEW_DEGREES = 45.0f;			///< 視野角
-const float Gate::NEAR_PLANE_DISTANCE = 0.1f;				///< カメラの最前面のクリップ距離
+const float Gate::FIELD_OF_VIEW_DEGREES = 45.0f;		///< 視野角
+const float Gate::NEAR_PLANE_DISTANCE = 0.1f;			///< カメラの最前面のクリップ距離
 const float Gate::FAR_PLANE_DISTANCE = 100.0f;			///< カメラの最遠面のクリップ距離
+
 /*
 * @brief コンストラクタ
 *
@@ -27,7 +32,8 @@ const float Gate::FAR_PLANE_DISTANCE = 100.0f;			///< カメラの最遠面のクリップ距
 */
 Gate::Gate()
 	:
-	m_gateRotAngle(0.0f)
+	m_gateRotAngle(0.0f),
+	m_initialX(0.0f)
 {
 }
 
@@ -52,7 +58,10 @@ Gate::~Gate()
 void Gate::Initialize()
 {
 	// ゲートの大きさ
-	m_gateScale = { 2.2f,2.0f,1.0f };
+	m_gateScale = DEFAULT_SCALE;
+
+	// 初期値の設定
+	m_initialX = INITIAL_X;
 
 	CreateDeviceDependentResources();
 }
@@ -69,17 +78,26 @@ void Gate::Update(Player* player, std::vector<std::unique_ptr<Enemy>>& enemies)
 {
 	m_gateTrans = DirectX::SimpleMath::Matrix::CreateTranslation(m_gatePosition);
 
+	// ここに来た場合、現在の位置を初期位置にする
+	if (m_initialX == INITIAL_X)
+	{
+		m_initialX = m_gatePosition.x;
+	}
+
+	// 左に開く限界のX座標
+	float leftLimitX = m_initialX - MAX_GATE_OPEN;
+
 	// ゲートの開閉
 	if (m_isOpen)
 	{
-		if (m_gatePosition.x <= MAX_GATE_OPEN)
-			m_gatePosition.x += OPEN_CLOSE_SPEED;
+		if (m_gatePosition.x > leftLimitX)
+			m_gatePosition.x -= OPEN_CLOSE_SPEED;
 
 	}
 	else if (!m_isOpen)
 	{
-		if (m_gatePosition.x > MIN_GATE_OPEN)
-			m_gatePosition.x -= OPEN_CLOSE_SPEED;
+		if (m_gatePosition.x < m_initialX)
+			m_gatePosition.x += OPEN_CLOSE_SPEED;
 	}
 	
 	// 当たり判定のサイズ
@@ -90,7 +108,7 @@ void Gate::Update(Player* player, std::vector<std::unique_ptr<Enemy>>& enemies)
 	gateAABBHalfSize.z *= GATE_COLLISION_DEPTH_SCALE;
 
 	// 当たり判定の作成
-	if (!m_isOpen || m_gatePosition.x <= MAX_GATE_OPEN)
+	if (!m_isOpen || m_gatePosition.x >= leftLimitX)
 		m_gateCollision = AABB(m_gatePosition - gateAABBHalfSize, m_gatePosition + gateAABBHalfSize);
 	else
 		m_gateCollision = AABB(DirectX::SimpleMath::Vector3::Zero, DirectX::SimpleMath::Vector3::Zero);
@@ -181,6 +199,8 @@ void Gate::SetPosition(float x, float y, float z)
 {
 	m_gatePosition = { x,y,z };
 	m_gateTrans = DirectX::SimpleMath::Matrix::CreateTranslation(m_gatePosition);
+
+	m_initialX = x;
 }
 
 /*
@@ -230,6 +250,8 @@ void Gate::ColliderLine()
 	m_primitiveBatch->DrawLine({ corners[1], lineColor }, { corners[5], lineColor });
 	m_primitiveBatch->DrawLine({ corners[2], lineColor }, { corners[6], lineColor });
 	m_primitiveBatch->DrawLine({ corners[3], lineColor }, { corners[7], lineColor });
+
+	/*///////////////////////////////////////////////////////////////////////////////*/
 
 	m_primitiveBatch->End();
 }
