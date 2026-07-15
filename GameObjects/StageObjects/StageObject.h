@@ -28,27 +28,20 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	StageObject();
-
 	// デストラクタ
 	virtual ~StageObject();
-
 	// 初期化処理
 	void Initialize(ID3D11Device* device, const wchar_t* path);
-
 	// データの読み込み
 	void LoadData(const std::vector<DirectX::SimpleMath::Vector3>& positions,
 		const std::vector<DirectX::SimpleMath::Vector3>& scales);
-
 	// 更新処理
 	void Update(Player* player, const std::vector<std::unique_ptr<Enemy>>& enemies);
-
 	// 描画処理
 	void Render(ID3D11DeviceContext* context, const DirectX::SimpleMath::Matrix& view,
 		const DirectX::SimpleMath::Matrix& proj, DirectX::CommonStates* states);
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
-
 	// コライダーの線
 	void ColliderLine();
 
@@ -61,7 +54,6 @@ private:
 	// デバイスリソース／コモンステート
 	class DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
-
 	// 位置
 	std::vector<DirectX::SimpleMath::Vector3> m_positions;
 	// 大きさ
@@ -70,7 +62,6 @@ private:
 	std::vector<AABB> m_collisions;
 	// モデル
 	std::unique_ptr<DirectX::Model> m_model;
-
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
 };

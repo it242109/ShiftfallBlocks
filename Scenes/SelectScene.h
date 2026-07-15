@@ -33,25 +33,18 @@ public:
 	// コンストラクタ／デストラクタ
 	SelectScene();
 	~SelectScene();
-
 	// 初期化処理
 	void Initialize() override;
-
 	// 更新処理
 	void Update(float elapsedTime) override;
-
 	// 描画処理
 	void Render() override;
-
 	// 終了処理
 	void Finalize() override;
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources() override;
-
 	// ウインドウサイズに依存するリソースを作成する関数
 	void CreateWindowSizeDependentResources() override;
-
 	// デバイスロストした時に呼び出される関数
 	void OnDeviceLost() override;
 
@@ -68,35 +61,27 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// デバイスリソースのポインタ
 	std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
 	// スプライトバッチのポインタ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
 	// キーボード状態を保存
 	DirectX::Keyboard::State m_prevKeyboardState = {};
-
 	// ステージを読み込むための変数
 	std::vector<std::string> m_stageFilePaths;
-
 	// 各ステージのラストタイムを取得
 	int m_lastTime_Tutorial;
 	int m_lastTime_FirstStage;
 	int m_lastTime_SecondStage;
 	int m_lastTime_ThirdStage;
-
 	// 各ステージのベストタイムを取得
 	int m_bestTime_Tutorial;
 	int m_bestTime_FirstStage;
 	int m_bestTime_SecondStage;
 	int m_bestTime_ThirdStage;
-
 	// タスクマネージャー
 	TaskManager m_taskManager;
-
 	// 数字を表示させるポインタ
 	Number* m_lastTimeNumber;
 	Number* m_bestTimeNumber;
-
 	// テクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_downSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_upSRV;
@@ -106,21 +91,21 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_bestTimeSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_numberSRV;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_selectKeySRV;
-
 	// 背景パーティクル
 	std::unique_ptr<BackGround> m_background;
-
 	// メニュー
 	std::unique_ptr<Menu> m_selectMenu;
-
 	// キーが押されたかどうか
-	bool m_isKeyPressed = false;;
-
-	// フェード関連
+	bool m_isKeyPressed = false;
+	// フェードが閉じたかどうか:チュートリアル
 	bool m_isClosingTutorial = false;
+	// フェードが閉じたかどうか:第一ステージ
 	bool m_isClosingFirstStage = false;
+	// フェードが閉じたかどうか:第二ステージ
 	bool m_isClosingSecondStage = false;
+	// フェードが閉じたかどうか:第三ステージ
 	bool m_isClosingThirdStage = false;
+	// フェードが閉じたかどうか:タイトル
 	bool m_isClosingTitle = false;
 };
 

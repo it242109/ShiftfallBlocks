@@ -28,35 +28,27 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	SceneBase() : m_sceneManager(nullptr) {}
-
 	// デストラクタ
 	virtual ~SceneBase() = default;
-
 	// 初期化
 	virtual void Initialize() = 0;
-
 	// 更新
 	virtual void Update(float elapsedTime) = 0;
-
 	// 描画
 	virtual void Render() = 0;
-
 	// 終了処理
 	virtual void Finalize() = 0;
-
 	// デバイスに依存するリソースを作成する関数
 	virtual void CreateDeviceDependentResources() {}
-
 	// ウインドウサイズに依存するリソースを作成する関数
 	virtual void CreateWindowSizeDependentResources() {}
-
 	// デバイスロストした時に呼び出される関数
 	virtual void OnDeviceLost() {}
 public:
 	// シーンの切り替え関数
 	template <class U>
 	void ChangeScene();
-
+	// ロード画面の切り替え関数
 	template <class U, class V>
 	void ChangeLoadingScene();
 

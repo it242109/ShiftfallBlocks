@@ -27,23 +27,18 @@ public:
 	// コンストラクタ／デストラクタ
 	Platform();
 	~Platform();
-
 	// 足場情報を登録
 	void LoadPlatformData(
 		const std::vector<DirectX::SimpleMath::Vector3>& positions,
 		const std::vector<DirectX::SimpleMath::Vector3>& scales);
-
 	// 更新処理
 	void Update(const std::vector<bool>& switchStates, 
 		Player* player, std::vector<std::unique_ptr<Enemy>>& enemies);
-
 	// 描画処理
 	void Render(const DirectX::SimpleMath::Matrix& view,
 		const DirectX::SimpleMath::Matrix& proj);
-
-	//デバイスに依存するリソースを作成する関数
+	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
-
 	// コライダーの線
 	void ColliderLine();
 
@@ -56,17 +51,16 @@ private:
 	// デバイスリソース／コモンステート
 	class DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
-
 	// モデル
 	std::shared_ptr<DirectX::Model> m_model;
-
-	// 足場情報
-	std::vector<DirectX::SimpleMath::Vector3> m_positions; // 位置
-	std::vector<DirectX::SimpleMath::Vector3> m_scales;	   // 大きさ
-	std::vector<AABB> m_collisions;						   // 当たり判定
-
+	// 足場の位置
+	std::vector<DirectX::SimpleMath::Vector3> m_positions; 
+	// 足場の大きさ
+	std::vector<DirectX::SimpleMath::Vector3> m_scales;	   
+	// 足場の当たり判定
+	std::vector<AABB> m_collisions;						  
+	// スイッチの状態
 	std::vector<bool> m_switchStates;
-
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
 };

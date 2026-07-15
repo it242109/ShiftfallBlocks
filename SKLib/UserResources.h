@@ -66,25 +66,18 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// ステップタイマー
 	DX::StepTimer* m_timer;
-
 	// デバイスリソース
 	DX::DeviceResources* m_deviceResources;
-
 	// キーボードステートトラッカー
 	DirectX::Keyboard::KeyboardStateTracker* m_keyboardTracker;
-
 	// マウスステートトラッカー
 	DirectX::Mouse::ButtonStateTracker* m_mouseTracker;
-
 	//デバッグ用文字列表示へのポインタ
 	DebugFont* m_debugFont;
-
 	// 共通ステート
 	DirectX::CommonStates* m_commonStates;
-
 	// 画面遷移マスク
 	TransitionMask* m_transitionMask;
-
 	// タイマー値
 	float m_clearTime = 0.0f;
 };

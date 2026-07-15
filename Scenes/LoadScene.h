@@ -18,25 +18,18 @@ public:
 	// コンストラクタ／デストラクタ
 	LoadScene();
 	~LoadScene();
-
 	// 初期化処理
 	void Initialize() override;
-
 	// 更新処理
 	void Update(float elapsedTime) override;
-
 	// 描画処理
 	void Render() override;
-
 	// 終了処理
 	void Finalize() override;
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources() override;
-
 	// ウインドウサイズに依存するリソースを作成する関数
 	void CreateWindowSizeDependentResources() override;
-
 	// デバイスロストした時に呼び出される関数
 	void OnDeviceLost() override;
 
@@ -63,29 +56,22 @@ private:
 	// メンバ変数 ------------------------------------------------------------------
 	// デバイスリソースのポインタ
 	std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
 	// スプライトバッチのポインタ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
-
 	// カメラ
 	TitleCamera m_camera;
-
-	// モデル
+	// 演出用ブロックのモデル
 	std::unique_ptr<DirectX::Model> m_platformBlockModel;
-
-	// モデルの位置とスケール
+	// 演出用ブロックのモデルの位置
 	DirectX::SimpleMath::Vector3 m_gimmickBlockPosition;
+	// 演出用ブロックのモデルの大きさ
 	DirectX::SimpleMath::Vector3 m_gimmickBlockScale;
-
 	// 床の回転度
 	DirectX::SimpleMath::Quaternion m_gimmickBlockRotate;
-
 	// テクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_loadingSRV;
 };

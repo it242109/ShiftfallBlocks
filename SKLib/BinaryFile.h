@@ -12,21 +12,19 @@ class BinaryFile
 private:
 	// データ
 	std::unique_ptr<char[]> m_shaderData;
-
 	// シェーダーのサイズ
 	unsigned int m_shaderSize;
 
 public:
 	// ロード
 	static std::unique_ptr<BinaryFile> LoadFile(const wchar_t* fileName);
-
 	// コンストラクタ
 	BinaryFile();
-
 	// ムーブコンストラクタ
 	BinaryFile(BinaryFile* in);
-
+	// データを取得
 	char* GetData() { return m_shaderData.get(); }
+	// サイズを取得
 	unsigned int GetSize() { return m_shaderSize; }
 };
 

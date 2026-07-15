@@ -31,7 +31,6 @@ public:
 	// 関数 ------------------------------------------------------------------------
 	//コンストラクタ
 	TitleCamera();
-
 	// 更新関数
 	void Update(float elapsedTime);
 
@@ -49,16 +48,13 @@ private:
 	// メンバ変数 ------------------------------------------------------------------
 	//現在のカメラタイプ
 	Type m_type;
-
 	//回転角（ラジアン）
 	float m_angle;
-
 	// プレイヤーの位置
 	const DirectX::SimpleMath::Vector3* m_pPlayerPos;
-
 	// プレイヤーの回転
 	const DirectX::SimpleMath::Quaternion* m_pPlayerRotate;
-
+	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
 };
 

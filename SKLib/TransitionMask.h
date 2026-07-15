@@ -61,10 +61,8 @@ public:
 		ID3D11DeviceContext* context,
 		float interval
 	);
-
 	// 更新処理
 	void Update(float elapsedTime);
-
 	// 描画処理
 	void Draw(
 		ID3D11DeviceContext* context,
@@ -72,10 +70,8 @@ public:
 		ID3D11ShaderResourceView* texture,
 		const RECT& rect
 	);
-
 	// オープンする関数
 	void Open();
-
 	// クローズする関数
 	void Close();
 
@@ -83,33 +79,24 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// 作成リクエスト
 	CreateMaskRequest m_request;
-
 	// 割合(0～1)
 	float m_rate;
-
 	// オープン又はクローズするまでの時間
 	float m_interval;
-
 	// オープンフラグ（trueの場合オープン）
 	bool m_open;
-
 	// スプライトバッチ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
 	// ピクセルシェーダー
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PS_Fade;
-
 	// 定数バッファの構造体
 	struct ConstantBuffer
 	{
-		float rate;
-		float pad[3];
+		float rate;		///< 演出の進行度
+		float pad[3];	///< パティング
 	};
-
 	// 定数バッファへのポインタ
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer;
-
 	// マスク用テクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_maskTexture;
-
 };

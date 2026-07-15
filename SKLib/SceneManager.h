@@ -22,15 +22,13 @@ class SceneManager
 {
 public:
 	// ゲッター／セッター -------------------------------------------------------------------
-// --- シーン遷移・設定 ---
+	// --- シーン遷移・設定 ---
 	// シーンを即座に切り替える設定関数
 	template <class U>
 	void SetScene();
-
 	// 次のフレームで切り替えるシーンの設定関数
 	template <class U>
 	bool SetNextScene();
-
 	// ロード画面を挟んで次のシーンへ切り替える設定関数
 	template<class U, class V>
 	bool SetLoadingScene();
@@ -65,28 +63,20 @@ public:
 			m_loadingThread.join();
 		}
 	};
-
 	// 更新
 	void Update(float elapsedTime);
-
 	// 描画
 	void Render();
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
-
 	// ウインドウサイズに依存するリソースを作成する関数
 	void CreateWindowSizeDependentResources();
-
 	// デバイスロストした時に呼び出される関数
 	virtual void OnDeviceLost();
-
 	// 次のシーンへの準備
 	void PrepareNextScene(std::function<std::unique_ptr<SceneBase<T>>()> sceneFactory);
-
 	// ロード中かどうか
 	bool IsLoading();
-
 	// シーン削除
 	void DeleteScene();
 
@@ -94,19 +84,16 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// 共通でアクセスしたいオブジェクトへのポインタ
 	T* m_userResources;
-
 	// 現在のシーン
 	std::unique_ptr<SceneBase<T>> m_currentScene;
-
 	// 次のシーン
 	std::unique_ptr<SceneBase<T>> m_nextScene;
-
 	// ロード画面
 	std::unique_ptr<LoadingScreen<T>> m_loadingScreen;
-
 	// スレッドと共有数
 	std::thread m_loadingThread;
 	std::mutex m_loadingMutex;
+	// ロード中かどうか
 	bool m_isLoading;
 };
 

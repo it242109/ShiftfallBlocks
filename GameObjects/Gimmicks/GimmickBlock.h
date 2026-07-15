@@ -9,11 +9,11 @@
 
 enum class BlockType
 {
-	PLATFORM,	// 足場
-	KEY,		// カギ
-	PORTAL,		// ポータル
-	ITEM,		// アイテム
-	NONE		// なし
+	PLATFORM,	///< 足場
+	KEY,		///< カギ
+	PORTAL,		///< ポータル
+	ITEM,		///< アイテム
+	NONE		///< なし
 };
 
 class GimmickBlock
@@ -73,22 +73,17 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	GimmickBlock();
-
 	// モデルの読み込み
 	void Initialize(std::shared_ptr<DirectX::Model> model, const DirectX::SimpleMath::Vector3& pos, 
 		const DirectX::SimpleMath::Vector3& scale,BlockType type);
-
 	// 更新処理
 	void Update(float elapsedTime);
-
 	// ブロックの処理を有効化する
 	void OnActivate();
-
 	// 当たり判定の更新
 	void UpdateCollision();										
 	// 当たり判定のチェック
 	bool CheckCollision(const AABB& otherAABB);					
-
 	// 追尾を開始
 	void StartFollowing(const DirectX::SimpleMath::Vector3& targetPos, float speed);
 	// 追尾を止める
@@ -97,7 +92,6 @@ public:
 	void Reset();
 	// 追尾の更新
 	void UpdateFollowing(float elapsedTime);										
-
 	// コライダーの線
 	void ColliderLine();
 private:
@@ -110,39 +104,33 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
-
 	// 初期値
 	DirectX::SimpleMath::Vector3 m_initialPosition;
-	
 	// ブロックのモデル
 	std::shared_ptr<DirectX::Model> m_model;
-
 	// ブロックの位置
 	DirectX::SimpleMath::Vector3 m_position;
-
 	// ブロックのスケール
 	DirectX::SimpleMath::Vector3 m_scale;
-
 	// ブロックの平行移動の行列
 	DirectX::SimpleMath::Matrix m_trans;
-
 	// 当たり判定
 	DirectX::SimpleMath::Vector3 m_aabbSize;
 	AABB m_collision;
-
 	// ブロックが置かれたかどうか
 	bool m_isJustPlaced;
-
 	// オブジェクトが有効かどうか
 	bool m_isVisible = true;
-
-	// 追尾関連
-	bool m_isFollowing = false;						
+	// 追尾しているかどうか
+	bool m_isFollowing = false;		
+	// 追尾対象の座標
 	DirectX::SimpleMath::Vector3 m_targetPosition;
+	//追尾速度
 	float m_followSpeed;
+	// 追尾オフセット
 	DirectX::SimpleMath::Vector3 m_followOffset;
+	// 運んでいるかどうか
 	bool m_isCarried;
-
 	// ブロックの種類
 	BlockType m_type = BlockType::NONE;
 };

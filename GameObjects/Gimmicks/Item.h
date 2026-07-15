@@ -53,22 +53,16 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// 初期化処理
 	void Initialize();
-
 	// アイテムの追加
 	void AddItem(const DirectX::SimpleMath::Vector3& position, ItemType type);
-
 	// 更新処理
 	void Update(const AABB& playerCollision, Player* player);
-
 	// 描画処理
 	void Render(const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj);
-
 	// アイテムのクリア
 	void ClearItems();
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
-
 	// コライダーの線
 	void ColliderLine();
 
@@ -88,24 +82,21 @@ private:
 	// デバイスリソース／コモンステート
 	DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
-
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
-
 	// 平行移動の行列
 	DirectX::SimpleMath::Matrix m_trans;
-
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
-
+	// アイテムのリスト
 	std::vector<ItemData> m_items;
+	// アイテムの当たり判定のリスト
 	std::vector<AABB> m_collisions;
-
-	// モデル
+	// 剣のモデル
 	std::unique_ptr<DirectX::Model> m_swordModel;
+	// 盾のモデル
 	std::unique_ptr<DirectX::Model> m_shieldModel;
 };
 

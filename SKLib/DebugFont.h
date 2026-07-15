@@ -29,13 +29,10 @@ private:
 	{
 		// 位置
 		DirectX::SimpleMath::Vector2 pos;
-
 		// 文字列
 		std::wstring string;
-
 		// 色
 		DirectX::SimpleMath::Color color;
-
 		// スケール
 		float scale = 1.0f;
 	};
@@ -46,10 +43,8 @@ private:
 public:
 	// スプライトバッチ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
 	// スプライトフォント
 	std::unique_ptr<DirectX::SpriteFont> m_spriteFont;
-
 	// フォントの縦サイズ
 	float m_fontHeight;
 
@@ -57,20 +52,16 @@ public:
 
 	// コンストラクタ
 	DebugFont(ID3D11Device* device, ID3D11DeviceContext* context, wchar_t const* fileName);
-
 	// デストラクタ
 	virtual ~DebugFont();
-
 	// 描画する文字列を登録する関数
 	void AddString(
 		const wchar_t* string,
 		DirectX::SimpleMath::Vector2 pos,
 		DirectX::FXMVECTOR color = DirectX::Colors::White,
 		float scale = 1.0f);
-
 	// 描画関数
 	void Render(DirectX::CommonStates* states);
-
 	// フォントの高さを取得する関数
 	float GetFontHeight() const { return m_fontHeight; }
 };
@@ -84,23 +75,18 @@ private:
 	{
 		// 位置
 		DirectX::SimpleMath::Vector3 pos;
-
 		// 文字列
 		std::wstring string;
-
 		// 色
 		DirectX::SimpleMath::Color color;
-
 		// スケール
 		float scale = 1.0f;
 	};
 
 	// 表示文字列の配列
 	std::vector<String> m_strings;
-
 	// エフェクト
 	std::unique_ptr<DirectX::BasicEffect> m_effect;
-
 	// 入力レイアウト
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
 
@@ -111,24 +97,20 @@ public:
 		ID3D11Device* device,
 		ID3D11DeviceContext* context,
 		wchar_t const* fileName);
-
 	// デストラクタ
 	~DebugFont3D();
-
 	// 描画する文字列を登録する関数
 	void AddString(
 		const wchar_t* string,
 		DirectX::SimpleMath::Vector3 pos,
 		DirectX::FXMVECTOR color = DirectX::Colors::White,
 		float scale = 1.0f);
-
 	// 描画関数
 	void Render(
 		ID3D11DeviceContext* context,
 		DirectX::CommonStates* states,
 		const DirectX::SimpleMath::Matrix& view,
 		const DirectX::SimpleMath::Matrix& proj);
-
 	// フォントの高さを取得する関数
 	float GetFontHeight() { return m_fontHeight; }
 };

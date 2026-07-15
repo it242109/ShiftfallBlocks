@@ -56,26 +56,19 @@ public:
 	// コンストラクタ／デストラクタ
 	Stage();
 	~Stage();
-
 	// ステージの読み込み
 	void Load(const std::string& filePath,Player* player, std::function<void()> onTeleport);
-
 	// 更新処理
 	void Update(float elapsedTime, Player* player, std::vector<std::unique_ptr<Enemy>>& enemies,bool isTeleporting);
-
 	// 描画処理
 	void Render(ID3D11DeviceContext* context, const DirectX::SimpleMath::Matrix& view, const DirectX::SimpleMath::Matrix& proj); 
-
 	// オブジェクトのリセット
 	void ResetObject();
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources(ID3D11Device* device, ID3D11DeviceContext* context, 
 		DX::DeviceResources* deviceResources, DirectX::CommonStates* states, UserResources* userResources);
-
 	// ビルボードの更新
 	void UpdateBillboard(const DirectX::SimpleMath::Vector3& target, const DirectX::SimpleMath::Vector3& eye);
-
 	// デバッグモードでの処理
 	void Debug();
 
@@ -99,64 +92,69 @@ private:
 	// メンバ変数 ------------------------------------------------------------------
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
-
 	// 共通ステート
 	std::unique_ptr<DirectX::CommonStates> m_states;
-
 	// ベーシックエフェクト
 	std::unique_ptr<DirectX::BasicEffect> m_basicEffect;
-
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
-
-	// モデル
+	// 足場ブロックモデル
 	std::shared_ptr<DirectX::Model> m_platformBlockModel;
+	// 鍵ブロックモデル
 	std::shared_ptr<DirectX::Model> m_keyBlockModel;
+	// ポータルブロックモデル
 	std::shared_ptr<DirectX::Model> m_portalBlockModel;
+	// アイテムブロックモデル
 	std::shared_ptr<DirectX::Model> m_itemBlockModel;
+	// スイッチモデル
 	std::unique_ptr<DirectX::Model> m_switchModel;
+	// ポータルモデル
 	std::unique_ptr<DirectX::Model> m_portalModel;
-
-	// ステージオブジェクト
+	// 床のオブジェクト
 	std::unique_ptr<StageObject> m_floor;
+	// 壁のオブジェクト
 	std::unique_ptr<StageObject> m_wall;
+	// 足場のオブジェクト
 	std::unique_ptr<Platform> m_platform;
+	// スイッチのオブジェクト
 	std::shared_ptr<Switch> m_switch;
+	// ポータルのオブジェクト
 	std::shared_ptr<Portal> m_portal;
+	// ゲートのオブジェクト
 	std::unique_ptr<Gate> m_gate;
+	// ゴールのオブジェクト
 	std::shared_ptr<Goal> m_goal;
-
 	// アイテム
 	std::unique_ptr<Item> m_item;
+	// アイテムが出現する座標のリスト
 	std::vector<DirectX::SimpleMath::Vector3> m_itemSpawnPositions;
-
-	// パーティクル
+	// ポータルパーティクル
 	std::unique_ptr<PortalParticle> m_portalParticle;
+	// スイッチパーティクル
 	std::unique_ptr<SwitchParticle> m_switchParticle;
+	// ブロックを置いたときのパーティクル
 	std::unique_ptr<BlockPutParticle> m_blockPutParticle;
+	// 正解のときにでるパーティクル
 	std::unique_ptr<CorrectSwitchParticle> m_correctSwitchParticle;
-
-	std::vector<std::shared_ptr<GimmickBlock>> m_gimmickBlocks; ///< 仕掛けブロック群
-	std::vector<size_t> m_itemGimmickBlockIndices;				///< アイテム用仕掛けブロックのインデックス記録する変数
-	std::shared_ptr<GimmickBlock> m_followingBlock;             ///< プレイヤーを追従するブロック
-
+	// 仕掛けブロック群
+	std::vector<std::shared_ptr<GimmickBlock>> m_gimmickBlocks;
+	// アイテム用仕掛けブロックのインデックス記録する変数
+	std::vector<size_t> m_itemGimmickBlockIndices;			
+	// プレイヤーを追従するブロック
+	std::shared_ptr<GimmickBlock> m_followingBlock;            
+	// ユーザーリソース
 	UserResources* m_userResources = nullptr; 
-
 	// カメラ
 	std::unique_ptr<GameCamera> m_camera;
-
 	// 各ギミックのON／OFF
 	std::vector<bool> m_isSwitchOn_PF;		///< 足場
 	bool m_isSwitchOn_Key;					///< カギ
 	std::vector<bool> m_isSwitchOn_Portal;	///< ポータル
 	std::vector<bool> m_isSwitchOn_Item;	///< アイテム
-
 	// タイマー
 	float m_teleportTimer;
-
 	//　スイッチごとの固定タイプ
 	std::vector<ItemType> m_itemTypes;
 };

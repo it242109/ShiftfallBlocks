@@ -148,6 +148,7 @@ void ResultScene::Update(float elapsedTime)
 		UpdateBestTime(); 
 	}
 
+	// クリアタイムとベストタイムの取得
 	m_clearTime = static_cast<int>(s_currentClearTime);
 	m_bestTime = static_cast<int>(GetBestTimeFromJson(m_stage));
 

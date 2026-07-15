@@ -69,10 +69,10 @@ TutorialScene::TutorialScene()
     m_showExplanationFirst(true),
     m_showExplanationSecond(false),
     m_isGoalWaiting(false),
-    m_goalWaitTimer(0.0f),
+    m_waitTimer(0.0f),
     m_isTimerActive(0.0f),
     m_clearFontPosX(0.0f),
-    m_isClearSEPlayed(false)
+    m_isSEPlayed(false)
 {
 }
 
@@ -467,10 +467,10 @@ void TutorialScene::Update(float elapsedTime)
     if (m_isGoalWaiting)
     {
         // 効果音を再生
-        if (!m_isClearSEPlayed)
+        if (!m_isSEPlayed)
         {
             SoundManager::GetInstance().Play(L"CLEAR");
-            m_isClearSEPlayed = true;
+            m_isSEPlayed = true;
         }        
         // クリアフォントの位置を更新
         if (m_clearFontPosX < FONT_X_MAX)
@@ -484,10 +484,10 @@ void TutorialScene::Update(float elapsedTime)
             }
         }
 
-        m_goalWaitTimer += elapsedTime;
+        m_waitTimer += elapsedTime;
 
         // 一定時間経過したらリザルトシーンに遷移
-        if (m_goalWaitTimer >= WAIT_TIME)
+        if (m_waitTimer >= WAIT_TIME)
         {
             ChangeScene<ResultScene>();
             return;
@@ -510,7 +510,7 @@ void TutorialScene::Update(float elapsedTime)
 
         // ゴール後の待機状態を開始
         m_isGoalWaiting = true;
-        m_goalWaitTimer = 0.0f;
+        m_waitTimer = 0.0f;
         return;
     }
 
@@ -872,8 +872,8 @@ void TutorialScene::ResetGame()
         m_enemies[i]->Initialize(m_enemyStartPositions[i]);
     }
 
-    // クリアSEのフラグをリセット
-    m_isClearSEPlayed = false;
+    // SEのフラグをリセット
+    m_isSEPlayed = false;
 
     // ポーズ解除
     m_isPause = false;

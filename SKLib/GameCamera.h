@@ -100,46 +100,38 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// カメラの距離
 	float m_cameraDistance;
-
 	// 横回転
 	float m_yAngle, m_yTmp;
-
 	// 縦回転
 	float m_xAngle, m_xTmp;
-
 	// ドラッグされた座標
 	int m_x, m_y;
+	// ドラッグされた座標：画面サイズ
 	float m_sx, m_sy;
-
 	// 生成されたビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// スクロールホイール値
 	int m_scrollWheelValue;
-
 	// マウストラッカー
 	DirectX::Mouse::ButtonStateTracker m_tracker;
-
 	// スクリーンサイズ
 	int m_screenW, m_screenH;
-
-	// 追従モード関連変数
+	// 追従モードが有効かどうか
 	bool m_followMode = false;
+	// 追従モードのカメラ位置
 	DirectX::SimpleMath::Vector3 m_followEye;
+	// 追従モードの注視点
 	DirectX::SimpleMath::Vector3 m_followTarget;
-
 	// 追従モードの水平角度
 	float m_cameraHorizontalAngle;
-
 	// スクロールホイールのデータ
 	float m_scrollData = 5.0f;
 	// 前回のスクロールホイールの値
 	int m_lastWheelValue;
+
 public:
 	// 視点
 	DirectX::SimpleMath::Vector3 m_eye;
-
 	// 注視点
 	DirectX::SimpleMath::Vector3 m_target;
-
 };

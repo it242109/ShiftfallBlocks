@@ -150,10 +150,10 @@ void StageScene::Initialize()
 	m_fontPosX = FONT_INITIAL_POSITION_X;
 
     // ƒƒjƒ…[‚Ì‰Šú‰»
-    m_pauseMenu->Add(L"Resources/Textures/resume.png"
-        , ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 200)
-        , ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)
-        , ANCHOR::MIDDLE_CENTER);
+    m_pauseMenu->Add(L"Resources/Textures/resume.png",
+        ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 200),
+        ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y),
+        ANCHOR::MIDDLE_CENTER);
     m_pauseMenu->Add(L"Resources/Textures/retry.png"
         , ScreenManager::Pos(MENU_DEFAULT_POSITION_X, 400)
         , ScreenManager::Scale(MENU_DEFAULT_SCALE_X, MENU_DEFAULT_SCALE_Y)

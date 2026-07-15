@@ -22,25 +22,18 @@ public:
 	// コンストラクタ／デストラクタ
 	TitleScene();
 	~TitleScene();
-
 	// 初期化処理
 	void Initialize() override;
-
 	// 更新処理
 	void Update(float elapsedTime) override;
-
 	// 描画処理
 	void Render() override;
-
 	// 終了処理
 	void Finalize() override;
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources() override;
-
 	// ウインドウサイズに依存するリソースを作成する関数
 	void CreateWindowSizeDependentResources() override;
-
 	// デバイスロストした時に呼び出される関数
 	void OnDeviceLost() override;
 
@@ -69,49 +62,47 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// デバイスリソースのポインタ
 	std::unique_ptr<DX::DeviceResources>    m_deviceResources;
-
 	// スプライトバッチのポインタ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
 	// キーボード状態を保存
 	DirectX::Keyboard::State m_prevKeyboardState = {};
-
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
-
 	// カメラ
 	TitleCamera m_camera;
-
-	// モデル
+	// 床モデル
 	std::unique_ptr<DirectX::Model> m_floorModel;
+	// 壁モデル
 	std::unique_ptr<DirectX::Model> m_wallModel;
+	// プレイヤーモデル
 	std::unique_ptr<DirectX::Model> m_playerModel;
+	// 仕掛けブロックモデル
 	std::unique_ptr<DirectX::Model> m_gimmickBlockModel;
-
-	// モデルの位置とスケール
+	// 床モデルの位置
 	DirectX::SimpleMath::Vector3 m_floorPosition;
+	// 床モデルの大きさ
 	DirectX::SimpleMath::Vector3 m_floorScale;
-	AABB m_floorCollision;
-
+	// 壁モデルの位置
 	std::vector<DirectX::SimpleMath::Vector3> m_wallPositions;
+	// 壁モデルの大きさ
 	std::vector<DirectX::SimpleMath::Vector3> m_wallScales;
-	
+	// プレイヤーモデルの位置
 	DirectX::SimpleMath::Vector3 m_playerPosition;
+	// プレイヤーモデルの大きさ
 	DirectX::SimpleMath::Vector3 m_playerScale;
-
+	// 仕掛けブロックの位置
 	DirectX::SimpleMath::Vector3 m_gimmickBlockPosition;
+	// 仕掛けブロックの大きさ
 	DirectX::SimpleMath::Vector3 m_gimmickBlockScale;
-
 	// 床の回転度
 	DirectX::SimpleMath::Quaternion m_floorRotate;
-
-	// テクスチャ
+	// タイトルロゴのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_titleLogo;
+	// 選択キーのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_selectKey;
-
+	// メニュー
 	std::unique_ptr<Menu> m_titleMenu;
 
 	// フェード関連

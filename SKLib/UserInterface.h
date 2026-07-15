@@ -71,10 +71,8 @@ public:
 	// コンストラクタ／デストラクタ
 	UserInterface();
 	~UserInterface();
-
 	// テクスチャリソース読み込み関数
 	void LoadTexture(const wchar_t* path);
-	
 	// 生成関数
 	void Create(DX::DeviceResources* pDR
 		, const wchar_t* path
@@ -109,21 +107,24 @@ private:
 	std::unique_ptr<DirectX::CommonStates> m_states;
 	//	テクスチャハンドル
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_texture;
+	// リソース
 	Microsoft::WRL::ComPtr<ID3D11Resource> m_res;
-
 	//	頂点シェーダ
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
 	//	ピクセルシェーダ
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
 	//	ジオメトリシェーダ
 	Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_geometryShader;
-
+	// ウィンドウのサイズ
 	int m_windowWidth, m_windowHeight;
+	// テクスチャのサイズ
 	int m_textureWidth, m_textureHeight;
-
+	// スケール
 	DirectX::SimpleMath::Vector2 m_scale;
+	// 基準のスケール
 	DirectX::SimpleMath::Vector2 m_baseScale;
+	// 位置
 	DirectX::SimpleMath::Vector2 m_position;
-
+	// 基準点(アンカー)
 	ANCHOR m_anchor;
 };

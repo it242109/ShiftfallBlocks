@@ -31,17 +31,17 @@ public:
 	// 列挙体の管理 -------------------------------------------------------------------------
 	enum class ResultStage // 各ステージ
 	{
-		TUTORIAL,	// チュートリアル
-		FIRST,		// ステージ１
-		SECOND,		// ステージ２
-		THIRD,		// ステージ３
-		NONE		// デフォルト
+		TUTORIAL,	///< チュートリアル
+		FIRST,		///< ステージ１
+		SECOND,		///< ステージ２
+		THIRD,		///< ステージ３
+		NONE		///< デフォルト
 	};
 	enum class ResultType // ゲーム結果
 	{
-		CLEAR,		// クリア
-		GAMEOVER,	// ゲームオーバー
-		NONE		// デフォルト
+		CLEAR,		///< クリア
+		GAMEOVER,	///< ゲームオーバー
+		NONE		///< デフォルト
 	};
 
 public:
@@ -66,43 +66,32 @@ public:
 
 public:
 	// 関数 ---------------------------------------------------------------------------------
-	// コンストラクタ
+	// コンストラクタ／デストラクタ
 	ResultScene();
 	~ResultScene();
-
 	// 初期化処理
 	void Initialize() override;
-
 	// 更新処理
 	void Update(float elapsedTime) override;
-
 	// 描画処理
 	void Render() override;
-
 	// 終了処理
 	void Finalize() override;
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources() override;
-
 	// ウインドウサイズに依存するリソースを作成する関数
 	void CreateWindowSizeDependentResources() override;
-
 	// デバイスロストした時に呼び出される関数
 	void OnDeviceLost() override;
 private:
 	// 文字列に変換
 	static std::string StageEnumToString(ResultStage stage);
-
 	// 秒から分秒表記に変換する関数
 	static std::string FormatTimeHMS(float timeSec);
-
 	// 分秒表記から秒に戻す関数
 	static float ParseTimeHMS(const std::string& timeStr);
-
 	// クリアしたタイムを記録する
 	void UpdateLastTime() const;
-
 	// ベストタイム更新処理
 	void UpdateBestTime() const;
 
@@ -118,46 +107,51 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// スプライトバッチのポインタ
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
-
 	// キーボード状態を保存
 	DirectX::Keyboard::State m_prevKeyboardState = {};
-
 	// リザルトタイプ
 	ResultType m_result;
+	// グローバルなリザルトタイプ
 	static ResultType s_globalResult;
+	// ステージタイプ
 	ResultStage m_stage;
+	// グローバルなステージタイプ
 	static ResultStage s_globalStage;
-
-	// タイム関連
+	// 現在のクリアタイム
 	static float s_currentClearTime;
+	// クリアタイム
 	int m_clearTime;
+	// ベストタイム
 	int m_bestTime;
-
 	// タスクマネージャー
 	TaskManager m_taskManager;
-
 	// 数字を表示させるポインタ
 	Number* m_clearTimeNumber;
 	Number* m_bestTimeNumber;
-
 	// 背景パーティクル
 	std::unique_ptr<BackGround> m_background;
-
-	// テクスチャ
+	// チュートリアルステージフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_tutorialstageFont;
+	// 第一ステージフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_firststageFont;
+	// 第二ステージフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_secondstageFont;
+	// 第三ステージフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_thirdstageFont;
+	// タイムフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_timeFont;
+	// ベストタイムフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_bestTimeFont;
+	// クリアフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_clearFont;
+	// ゲームオーバーフォントのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_gameoverFont;
+	// 数字のテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_numberSRV;
+	// 選択キーのテクスチャ
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_selectKey;
-
 	// メニュー
 	std::unique_ptr<Menu> m_menu;
-
 	// フェード関連
 	bool m_isClosing = false;
 };

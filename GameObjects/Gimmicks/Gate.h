@@ -43,19 +43,14 @@ public:
 	// コンストラクタ／デストラクタ
 	Gate();
 	~Gate();
-	
 	// 初期化処理
 	void Initialize();
-
 	// 更新処理
 	void Update(Player* player, std::vector<std::unique_ptr<Enemy>>& enemies);
-
 	// 描画処理
 	void Render(const DirectX::SimpleMath::Matrix& view);
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
-
 	// コライダーの線
 	void ColliderLine();
 
@@ -80,50 +75,35 @@ private:
 	// デバイスリソース／コモンステート
 	DX::DeviceResources* m_deviceResources = nullptr;
 	DirectX::CommonStates* m_states = nullptr;
-
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
-
 	// 平行移動の行列
 	DirectX::SimpleMath::Matrix m_trans;
-
 	// ベーシックエフェクト
 	std::unique_ptr<DirectX::BasicEffect> m_basicEffect;
-
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
-
 	// インプットレイアウト
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-
 	// カメラ
 	std::unique_ptr<GameCamera> m_camera;
 	bool m_isCameraActive = false;
-
 	// モデル
 	std::unique_ptr<DirectX::Model> m_model;
-
 	// モデルの位置
 	DirectX::SimpleMath::Vector3 m_gatePosition;
-
 	// モデルの大きさ
 	DirectX::SimpleMath::Vector3 m_gateScale;
-
 	// 平行移動の行列
 	DirectX::SimpleMath::Matrix m_gateTrans;
-
 	// 初期位置Ｘ
 	float m_initialX;
-
 	// 回転角度
 	float m_gateRotAngle;
-
 	// 開閉フラグ
 	bool m_isOpen = false;
-
 	// 当たり判定
 	AABB m_gateCollision;
 };

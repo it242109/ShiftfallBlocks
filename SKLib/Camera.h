@@ -29,10 +29,8 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	Camera();
-
 	// デストラクタ
 	~Camera() {}
-
 	// カメラの切り替え時の初期化関数
 	void InitializeCamera();
 
@@ -45,16 +43,12 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// 視点の位置
 	DirectX::SimpleMath::Vector3 m_eyePos;
-
 	// 注目点の位置
 	DirectX::SimpleMath::Vector3 m_targetPos;
-
 	// カメラの位置への距離の差分に対する割合
 	float m_eyeMoveRate;
-
 	// 注視点への距離の差分に対する割合
 	float m_targetMoveRate;
-
 	// カメラの位置の初期化フラグ
 	bool m_initFlag;
 };

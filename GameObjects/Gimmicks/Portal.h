@@ -19,10 +19,10 @@ enum class PortalTargetType
 // ポータルデータの管理
 struct PortalData
 {
-	DirectX::SimpleMath::Vector3 position;
-	DirectX::SimpleMath::Vector3 scale;
-	PortalTargetType portalType;
-	std::function<void()> onTeleport;
+	DirectX::SimpleMath::Vector3 position;	// 位置
+	DirectX::SimpleMath::Vector3 scale;		// 大きさ
+	PortalTargetType portalType;			// ポータルの進む／戻るの種類
+	std::function<void()> onTeleport;		// テレポートしている間の処理
 };
 
 class Portal
@@ -51,21 +51,16 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// 初期化処理
 	void Initialize(ID3D11DeviceContext* context);
-
 	// 更新処理
 	void Update(const AABB& playerCollision, float elapsedTime, const std::vector<bool>& portalStates);
-
 	// 描画処理
 	void Render(ID3D11DeviceContext* context, const DirectX::SimpleMath::Matrix& view,
 		const DirectX::SimpleMath::Matrix& proj, DirectX::CommonStates* states,
 		const std::vector<bool>& portalStates);
-
 	// 各ポータルの追加処理
 	void AddPortal(const PortalData& data, int setIndex);
-
 	// ポータルをセットに割り当てる
 	void AssignPortalToSet(size_t portalIndex, int setIndex);
-
 	// コライダーの線
 	void ColliderLine(const std::vector<bool>& portalStates);
 
@@ -80,19 +75,18 @@ private:
 	// メンバ変数 ---------------------------------------------------------------------------
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
-
 	// 各ポータル
 	std::vector<PortalData> m_portals;
+	// 各ポータルの当たり判定
 	std::vector<AABB> m_collisions;
-
-	// テレポート時の変数
+	// テレポートしているかどうか
 	bool m_isTeleporting = false;
+	// テレポートが完了したかどうか
 	bool m_isTeleported = false;
+	// クールダウンタイマー
 	float m_teleportTimer = 0.0f;
-
 	// モデル
 	DirectX::Model* m_model = nullptr;
-
 	// ポータルセットのインデックスを管理するベクター
 	std::vector<int> m_portalSetIndices;
 };

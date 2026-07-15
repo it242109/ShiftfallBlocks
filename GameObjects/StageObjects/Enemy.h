@@ -74,41 +74,29 @@ public:
 
 	// 初期化処理
 	void Initialize(const DirectX::SimpleMath::Vector3& startPos);
-
 	// 更新処理
 	void Update(float elapsedTime, const DirectX::SimpleMath::Vector3& enemyPos);
-
 	// 状態遷移処理
 	void UpdateState(const DirectX::SimpleMath::Vector3& enemyPos);
-
 	// 追尾処理
 	void UpdateChase(const DirectX::SimpleMath::Vector3& enemyPos);
-
 	// 待機処理
 	void UpdateIdle();
-
 	// 重力の適用
 	void ApplyGravity(float elapsedTime);
-
 	// 描画処理
 	void Render(const DirectX::SimpleMath::Matrix& view,
 		const DirectX::SimpleMath::Matrix& proj);
-
 	// 終了処理
 	void Finalize();
-
 	// デバイスに依存するリソースを作成する関数
 	void CreateDeviceDependentResources();
-
 	//　床の着地状態をリセット
 	void ResetFloorHit();
-
 	// 影を描画するメソッド
 	void RenderShadow();
-
 	// 当たり判定の更新
 	void UpdateCollision(const AABB& collision, const DirectX::SimpleMath::Vector3& position);
-	
 	// コライダーの線
 	void ColliderLine();
 
@@ -139,64 +127,46 @@ private:
 
 	// 敵の状態
 	EnemyState m_state = EnemyState::Idle;
-
 	// ビュー行列
 	DirectX::SimpleMath::Matrix m_view;
-
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_proj;
-
 	// ベーシックエフェクト
 	std::unique_ptr<DirectX::BasicEffect> m_basicEffect;
-
 	// プリミティブバッチ
 	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
-
 	// インプットレイアウト
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-
 	// モデル
 	std::unique_ptr<DirectX::Model> m_enemyModel;
-
 	// モデルの位置
 	DirectX::SimpleMath::Vector3 m_enemyPosition;
-
 	// 速度
 	float m_enemyVelocity;
 	// 垂直方向の速度
 	float m_verticalVelocity;
-
 	// スケール
 	DirectX::SimpleMath::Vector3 m_enemyScale;
 	DirectX::SimpleMath::Vector3 m_damageScale;
-
 	// モデルの平行移動の行列
 	DirectX::SimpleMath::Matrix m_enemyTrans;
-
 	// 当たり判定
 	AABB m_enemyCollision;
 	AABB m_damageCollision;
-
 	// 影
 	Shadow m_shadow;
-
 	// 向き
 	DirectX::SimpleMath::Vector3 m_enemyForward;
-
 	// 床に触れているかどうか
 	bool m_floorHit;
-
 	// 死んだかどうか
 	bool m_isDead;
-
 	// 開始位置
 	DirectX::SimpleMath::Vector3 m_startPosition;
-
 	// 影描画用のメンバ変数
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState_Shadow;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PS;
 	std::unique_ptr<DirectX::Model> m_shadowModel;
-
 	// 床の情報（影を落とすために必要）
 	std::vector<DirectX::SimpleMath::Vector3> m_floorPositions;
 	std::vector<DirectX::SimpleMath::Vector3> m_floorScales;

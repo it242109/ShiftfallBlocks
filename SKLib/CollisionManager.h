@@ -11,7 +11,6 @@ public:
 	// 関数 ---------------------------------------------------------------------------------
 	// コンストラクタ
 	CollisionManager();
-
 	// デストラクタ
 	~CollisionManager();
 };
@@ -25,13 +24,10 @@ public:
 	AABB();
 	// デフォルトコンストラクタ(AABB)
 	AABB(const DirectX::XMFLOAT3& minPoint, const DirectX::XMFLOAT3& maxPoint);
-
 	// 当たり判定（AABB）の作成
 	AABB CreateAABB(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& size);
-
 	// 当たっているかどうか
 	bool CheckAABBCollision(const AABB& a, const AABB& b) const;
-
 	// 床との衝突判定
 	float GetGroundY(const DirectX::SimpleMath::Vector3& position, const AABB& groundBox);
 
